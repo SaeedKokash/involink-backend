@@ -1,62 +1,57 @@
 module.exports = (sequelize, DataTypes) => {
   const RequestToPay = sequelize.define('RequestToPay', {
-    rtpId: {
-      type: DataTypes.INTEGER,
-      primaryKey: true,
-      field: 'rtp_id', // This maps to the 'rtp_id' column in the table
-    },
     invoiceId: {
       type: DataTypes.INTEGER,
-      allowNull: false,
-      field: 'invoice_id',
+      // allowNull: false,
+      // field: 'invoice_id',
     },
     sessionId: {
       type: DataTypes.INTEGER,
-      allowNull: false,
-      field: 'session_id',
+      // allowNull: false,
+      // field: 'session_id',
     },
     msgId: {
       type: DataTypes.INTEGER,
-      allowNull: false,
-      field: 'msgId',
+      // allowNull: false,
+      // field: 'msgId',
     },
     purpose: {
       type: DataTypes.INTEGER,
-      allowNull: false,
-      field: 'purpose',
+      // allowNull: false,
+      // field: 'purpose',
     },
     amount: {
       type: DataTypes.INTEGER,
-      allowNull: false,
-      field: 'amount',
+      // allowNull: false,
+      // field: 'amount',
     },
     receiverType: {
       type: DataTypes.INTEGER,
-      allowNull: false,
-      field: 'receiverType',
+      // allowNull: false,
+      // field: 'receiverType',
     },
     senderType: {
       type: DataTypes.INTEGER,
-      allowNull: false,
-      field: 'senderType',
+      // allowNull: false,
+      // field: 'senderType',
     },
     // Custom mappings for timestamps
     createdAt: {
       type: DataTypes.DATE,
-      field: 'created_at', // Map to your DB column 'created_at'
+      // field: 'created_at', // Map to your DB column 'created_at'
     },
     updatedAt: {
       type: DataTypes.DATE,
-      field: 'updated_at', // Map to your DB column 'updated_at'
+      // field: 'updated_at', // Map to your DB column 'updated_at'
     },
     deletedAt: {
       type: DataTypes.DATE,
-      field: 'deleted_at', // Map to your DB column 'deleted_at'
+      // field: 'deleted_at', // Map to your DB column 'deleted_at'
     },
     extraData: {
       type: DataTypes.JSON,
-      allowNull: false,
-      field: 'extraData',
+      // allowNull: false,
+      // field: 'extraData',
     },
   }, {
     tableName: 'request_to_pay', // Explicitly specify the table name

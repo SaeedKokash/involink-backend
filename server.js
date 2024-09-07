@@ -20,7 +20,7 @@ const requestLogger = require('./middlewares/requestLogger');
 const limiter = require('./middlewares/rateLimiter');
 
 const helmet = require('helmet');
-const morgan = require('morgan');
+// const morgan = require('morgan');
 const logger = require('./config/logger');
 
 app.use(cors());
@@ -32,11 +32,11 @@ app.use(helmet());
 app.use(requestLogger);
 app.use(limiter); // Apply rate limiter to all requests
 
-app.use(morgan('combined', {
-  stream: {
-    write: (message) => logger.info(message.trim()),
-  },
-}));
+// app.use(morgan('combined', {
+//   stream: {
+//     write: (message) => logger.info(message.trim()),
+//   },
+// }));
 
 app.use('/api/users', authRoutes);
 app.use('/api/stores', authMiddleware.protect, authMiddleware.restrictTo('merchant'), storeRoutes);

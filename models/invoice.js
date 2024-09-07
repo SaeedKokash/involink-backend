@@ -1,26 +1,89 @@
-// models/invoice.js
+'use strict';
+
 module.exports = (sequelize, DataTypes) => {
-    const Invoice = sequelize.define('Invoice', {
-      invoiceNumber: {
-        type: DataTypes.STRING,
-        allowNull: false,
-        unique: true,
-      },
-      totalAmount: {
-        type: DataTypes.FLOAT,
-        allowNull: false,
-      },
-      status: {
-        type: DataTypes.ENUM('pending', 'paid', 'canceled'),
-        allowNull: false,
-      },
-    });
-  
-    Invoice.associate = function(models) {
-      Invoice.belongsTo(models.Store, { foreignKey: 'storeId' });
-      Invoice.belongsTo(models.User, { as: 'customer', foreignKey: 'customerId' });
-    };
-  
-    return Invoice;
+  const Invoice = sequelize.define('Invoice', {
+    store_id: {
+      type: DataTypes.INTEGER,
+      // allowNull: false,
+    },
+    invoice_number: {
+      type: DataTypes.STRING,
+      // allowNull: false,
+    },
+    order_number: {
+      type: DataTypes.STRING,
+    },
+    status: {
+      type: DataTypes.STRING,
+      // allowNull: false,
+    },
+    invoiced_at: {
+      type: DataTypes.DATE,
+      // allowNull: false,
+    },
+    due_at: {
+      type: DataTypes.DATE,
+      // allowNull: false,
+    },
+    amount: {
+      type: DataTypes.FLOAT,
+      // allowNull: false,
+    },
+    currency_code: {
+      type: DataTypes.STRING,
+      // allowNull: false,
+    },
+    currency_rate: {
+      type: DataTypes.FLOAT,
+      // allowNull: false,
+    },
+    category_id: {
+      type: DataTypes.INTEGER,
+      // allowNull: false,
+    },
+    contact_id: {
+      type: DataTypes.INTEGER,
+      // allowNull: false,
+    },
+    contact_name: {
+      type: DataTypes.STRING,
+      // allowNull: false,
+    },
+    contact_email: {
+      type: DataTypes.STRING,
+    },
+    contact_tax_number: {
+      type: DataTypes.STRING,
+    },
+    contact_phone: {
+      type: DataTypes.STRING,
+    },
+    contact_address: {
+      type: DataTypes.TEXT,
+    },
+    notes: {
+      type: DataTypes.TEXT,
+    },
+    footer: {
+      type: DataTypes.TEXT,
+    },
+    parent_id: {
+      type: DataTypes.INTEGER,
+      // allowNull: false,
+    },
+  }, {
+    timestamps: true,
+    paranoid: true,
+    underscored: true,
+  });
+
+  Invoice.associate = (models) => {
+    Invoice.belongsTo(models.Store, { foreignKey: 'store_id' });
+    // Invoice.belongsTo(models.Category, { foreignKey: 'category_id' });
+    // Invoice.belongsTo(models.Contact, { foreignKey: 'contact_id' });
+    Invoice.hasMany(models.InvoiceItem, { foreignKey: 'invoice_id' });
+    Invoice.belongsTo(models.Invoice, { foreignKey: 'parent_id' });
   };
-  
+
+  return Invoice;
+};

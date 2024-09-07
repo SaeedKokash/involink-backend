@@ -1,12 +1,8 @@
+'use strict';
 const bcrypt = require('bcrypt');
 
 module.exports = (sequelize, DataTypes) => {
   const User = sequelize.define('User', {
-    // id: {
-    //   type: DataTypes.UUID,
-    //   defaultValue: DataTypes.UUIDV4,
-    //   primaryKey: true,
-    // },
     name: {
       type: DataTypes.STRING,
       allowNull: false,
@@ -28,6 +24,35 @@ module.exports = (sequelize, DataTypes) => {
       defaultValue: 'customer',
       allowNull: false,
     },
+    permissions: {
+      type: DataTypes.VIRTUAL,
+      get() {
+        const acl = {
+          admin: ['create', 'read', 'update', 'delete'],
+          merchant: ['create', 'read', 'update'],
+          customer: ['read'],
+        };
+        return acl[this.role];
+      },
+    },
+    refreshToken: {
+      type: DataTypes.STRING,
+    },
+    lastLoggedInAt: {
+      type: DataTypes.DATE,
+    },
+    locale: {
+      type: DataTypes.STRING,
+      // allowNull: false,
+    },
+    landingPage: {
+      type: DataTypes.STRING,
+    },
+    enabled: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: true,
+      allowNull: false,
+    },
   }, {
     hooks: {
       beforeCreate: async (user) => {
@@ -41,14 +66,16 @@ module.exports = (sequelize, DataTypes) => {
     },
   });
 
-  User.prototype.isValidPassword = async function(password) {
+  User.prototype.isValidPassword = async function (password) {
     return bcrypt.compare(password, this.password);
   };
 
   // Define the many-to-many relationship with Permission
-  // User.associate = (models) => {
-  //   User.belongsToMany(models.Permission, { through: 'UserPermissions' });
-  // };
+  User.associate = (models) => {
+    // User.belongsToMany(models.Permission, { through: 'UserPermissions' });
+    User.belongsToMany(models.Store, { through: 'UserStores' });
+
+  };
 
   return User;
 };
