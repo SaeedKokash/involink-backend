@@ -1,0 +1,9 @@
+{
+  "port": 3002,
+  "logLevel": "error",
+  "database": {
+    "username": "${DB_TEST_USER}",
+    "password": "${DB_TEST_PASS}",
+    "name": "invoLink_test"
+  }
+}

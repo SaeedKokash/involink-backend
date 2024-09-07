@@ -1,0 +1,11 @@
+
+
+{
+  "port": 4000,
+  "logLevel": "debug",
+  "database": {
+    "username": "skokash",
+    "password": "Ss123123",
+    "name": "invoLink_dev"
+  }
+}

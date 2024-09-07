@@ -1,0 +1,10 @@
+{
+  "port": 8080,
+  "logLevel": "warn",
+  "database": {
+    "username": "${DB_PROD_USER}",
+    "password": "${DB_PROD_PASS}",
+    "name": "invoLink_prod",
+    "host": "prod-db-host"
+  }
+}
