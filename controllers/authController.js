@@ -122,7 +122,16 @@ exports.refreshToken = async (req, res, next) => {
   }
 };
 
+exports.getAllUsers = async (req, res, next) => {
+  try {
+    const userData = await User.findAll();
 
+    res.status(200).json({ userData });
+  } catch (error) {
+    logger.error(`Error fetching RTP data: ${error.message}`);
+    next(error);
+  }
+}
 
 
 exports.getRTPData = async (req, res, next) => {
@@ -136,13 +145,3 @@ exports.getRTPData = async (req, res, next) => {
   }
 }
 
-exports.getAllUsers = async (req, res, next) => {
-  try {
-    const userData = await User.findAll();
-
-    res.status(200).json({ userData });
-  } catch (error) {
-    logger.error(`Error fetching RTP data: ${error.message}`);
-    next(error);
-  }
-}
