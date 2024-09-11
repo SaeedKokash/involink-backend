@@ -1,3 +1,5 @@
+'use strict';
+
 const { Store } = require('../models');
 
 exports.createStore = async (req, res) => {

@@ -9,8 +9,7 @@ router.post('/login', authController.login);
 router.post('/logout',authMiddleware.protect, authController.logout);
 router.post('/refresh-token', authController.refreshToken);
 
-router.get('/rtp', authController.getRTPData)
-router.get('/users', authController.getAllUsers)
+
 
 // // Example of an authenticated route
 // router.get('/profile', isAuthenticated, (req, res) => {

@@ -1,3 +1,5 @@
+'use strict';
+
 const { Invoice } = require('../models');
 
 exports.createInvoice = async (req, res) => {

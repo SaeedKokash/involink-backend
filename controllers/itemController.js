@@ -1,3 +1,5 @@
+'use strict';
+
 const { Item } = require('../models');
 
 exports.createItem = async (req, res) => {

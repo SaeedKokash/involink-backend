@@ -1,6 +1,8 @@
+'use strict';
+
 const createError = require('http-errors');
 const logger = require('../config/logger');
-const { User, RequestToPay, RefreshToken } = require('../models');
+const { User, RefreshToken } = require('../models');
 const { signAccessToken, signRefreshToken } = require('../utils/tokenUtils');
 const jwt = require('jsonwebtoken');
 require('dotenv').config();
@@ -122,26 +124,5 @@ exports.refreshToken = async (req, res, next) => {
   }
 };
 
-exports.getAllUsers = async (req, res, next) => {
-  try {
-    const userData = await User.findAll();
 
-    res.status(200).json({ userData });
-  } catch (error) {
-    logger.error(`Error fetching RTP data: ${error.message}`);
-    next(error);
-  }
-}
-
-
-exports.getRTPData = async (req, res, next) => {
-  try {
-    const rtpData = await RequestToPay.findAll();
-
-    res.status(200).json({ rtpData });
-  } catch (error) {
-    logger.error(`Error fetching RTP data: ${error.message}`);
-    next(error);
-  }
-}
 

@@ -14,7 +14,6 @@ exports.protect = async (req, res, next) => {
     const token = authHeader.split(' ')[1];
     const decoded = await verifyToken(token, process.env.JWT_SECRET);
 
-    console.log(decoded)
     req.user = decoded;
     logger.info(`User ${decoded.id} authenticated successfully`);
     next();
@@ -25,14 +24,14 @@ exports.protect = async (req, res, next) => {
 };
 
 // Middleware to restrict access to specific roles
-exports.restrictTo = (role) => {
+exports.restrictTo = (...role) => {
   return (req, res, next) => {
-    if (req.user.role !== role) {
-      logger.warn(`User role ${req.user.role} attempted to access restricted route`);
-      return next(createError(403, 'Forbidden, insufficient permissions'));
+    if (!role.includes(req.user.role)) {
+      logger.warn(`User role ${req.user.role} is not authorized to access this route`);
+      return next(createError(403, 'You do not have permission to perform this action!'));
     }
     next();
-  };
+  }
 };
 
 // // Middleware to handle refresh tokens
