@@ -1,4 +1,17 @@
+'use strict';
+
 const { Payment } = require('../models');
+
+exports.getRTPData = async (req, res, next) => {
+  try {
+    const rtpData = await RequestToPay.findAll();
+
+    res.status(200).json({ rtpData });
+  } catch (error) {
+    logger.error(`Error fetching RTP data: ${error.message}`);
+    next(error);
+  }
+}
 
 exports.createPayment = async (req, res) => {
   try {

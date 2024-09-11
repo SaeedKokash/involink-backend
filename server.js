@@ -8,11 +8,12 @@ require('dotenv').config();
 
 const port = process.env.PORT || 4000;
 
-const authRoutes = require('./routes/authRoutes');
-const storeRoutes = require('./routes/storeRoutes');
-const itemRoutes = require('./routes/itemRoutes');
-const invoiceRoutes = require('./routes/invoiceRoutes');
-const paymentRoutes = require('./routes/paymentRoutes');
+const authRoutes = require('./routes/auth.routes');
+const userRoutes = require('./routes/user.routes');
+const storeRoutes = require('./routes/sotre.routes');
+const itemRoutes = require('./routes/item.routes');
+const invoiceRoutes = require('./routes/invoice.routes');
+const paymentRoutes = require('./routes/rtp.routes');
 
 const authMiddleware = require('./middlewares/authMiddleware');
 const errorHandler = require('./middlewares/errorMiddleware');
@@ -38,7 +39,8 @@ app.use(limiter); // Apply rate limiter to all requests
 //   },
 // }));
 
-app.use('/api/users', authRoutes);
+app.use('/api/auth', authRoutes);
+app.use('/api/users', authMiddleware.protect, userRoutes);
 app.use('/api/stores', authMiddleware.protect, authMiddleware.restrictTo('merchant'), storeRoutes);
 app.use('/api/items', authMiddleware.protect, authMiddleware.restrictTo('merchant'), itemRoutes);
 app.use('/api/invoices', authMiddleware.protect, invoiceRoutes);
