@@ -29,11 +29,10 @@ module.exports = (sequelize, DataTypes) => {
     });
 
     Tax.associate = function (models) {
-        Tax.belongsTo(models.Store, {
-            foreignKey: 'store_id',
-            as: 'store',
-        });
-    }
+        Tax.belongsTo(models.Store, { foreignKey: 'store_id' });
+        // Tax.hasMany(models.InvoiceItemTax, { foreignKey: 'tax_id' });
+        // Tax.hasMany(models.BillItemTax, { foreignKey: 'tax_id' });
+      };
 
     return Tax;
 }

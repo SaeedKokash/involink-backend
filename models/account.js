@@ -42,15 +42,9 @@ module.exports = (sequelize, DataTypes) => {
     });
 
     Account.associate = function (models) {
-        Account.belongsTo(models.Store, {
-            foreignKey: 'store_id',
-            as: 'store',
-        });
-        // Account.hasMany(models.Transaction, {
-        //     foreignKey: 'account_id',
-        //     as: 'transactions',
-        // });
-    }
+        Account.belongsTo(models.Store, { foreignKey: 'store_id' });
+        // Account.hasMany(models.Transaction, { foreignKey: 'account_id' });
+      };
 
     return Account;
 }

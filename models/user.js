@@ -73,10 +73,11 @@ module.exports = (sequelize, DataTypes) => {
   };
 
   // Define the many-to-many relationship with Permission
-  User.associate = (models) => {
-    // User.belongsToMany(models.Permission, { through: 'UserPermissions' });
-    User.belongsToMany(models.Store, { through: 'UserStores' });
-
+  User.associate = function (models) {
+    User.belongsToMany(models.Store, { through: models.UserStore, foreignKey: 'user_id' });
+    User.hasMany(models.Contact, { foreignKey: 'user_id' });
+    // User.belongsToMany(models.Permission, { through: models.UserPermissions, foreignKey: 'user_id' });
+    // User.belongsToMany(models.Role, { through: models.UserRoles, foreignKey: 'user_id' });
   };
 
   return User;
