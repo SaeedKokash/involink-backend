@@ -4,7 +4,7 @@ const db = require("./models").sequelize; // You can also use .models.index to b
 
 const { seedUsers } = require("./seeders/users.seed");
 
-const DB_SYNC = process.env.DB_SYNC || "force";
+const DB_SYNC = process.env.DB_SYNC || "alter";
 
 const databaseSyncStatus = {
   force: "force",

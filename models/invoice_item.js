@@ -50,10 +50,12 @@ module.exports = (sequelize, DataTypes) => {
         underscored: true,
     });
 
-    InvoiceItem.associate = (models) => {
-      InvoiceItem.belongsTo(models.Invoice, { foreignKey: 'invoice_id' });
-      InvoiceItem.belongsTo(models.Item, { foreignKey: 'item_id' });
-    };
+    InvoiceItem.associate = function (models) {
+        InvoiceItem.belongsTo(models.Store, { foreignKey: 'store_id' });
+        InvoiceItem.belongsTo(models.Invoice, { foreignKey: 'invoice_id' });
+        InvoiceItem.belongsTo(models.Item, { foreignKey: 'item_id' });
+        // InvoiceItem.hasMany(models.InvoiceItemTax, { foreignKey: 'invoice_item_id' });
+      };
 
     return InvoiceItem;
 }

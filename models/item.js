@@ -45,9 +45,11 @@ module.exports = (sequelize, DataTypes) => {
     underscored: true,
   });
 
-  // // Define the relationship with Store
-  Item.associate = (models) => {
+  // Define the relationship with Store
+  Item.associate = function (models) {
     Item.belongsTo(models.Store, { foreignKey: 'store_id' });
+    Item.belongsTo(models.Tax, { foreignKey: 'tax_id' });
+    // Item.belongsTo(models.Category, { foreignKey: 'category_id' });
   };
 
   return Item;

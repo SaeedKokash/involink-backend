@@ -50,19 +50,9 @@ module.exports = (sequelize, DataTypes) => {
     });
 
     Contact.associate = function (models) {
-        Contact.belongsTo(models.Store, {
-            foreignKey: 'store_id',
-            as: 'store',
-        });
-        Contact.belongsTo(models.User, {
-            foreignKey: 'user_id',
-            as: 'user',
-        });
-        // Contact.hasMany(models.Transaction, {
-        //     foreignKey: 'contact_id',
-        //     as: 'transactions',
-        // });
-    }
+        Contact.belongsTo(models.Store, { foreignKey: 'store_id' });
+        Contact.belongsTo(models.User, { foreignKey: 'user_id' });
+      };
 
     return Contact;
 }

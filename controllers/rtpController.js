@@ -1,75 +1,137 @@
-'use strict';
+const { RequestToPay, Invoice, 
+  // Session 
+} = require('../models'); // Import necessary models
 
-const { Payment } = require('../models');
-
-exports.getRTPData = async (req, res, next) => {
+// Create a new RequestToPay
+exports.createRequestToPay = async (req, res) => {
   try {
-    const rtpData = await RequestToPay.findAll();
+    const {
+      invoice_id,
+      session_id,
+      msgId,
+      purpose,
+      amount,
+      receiverType,
+      senderType,
+      extraData, // Assuming this is a JSON field
+    } = req.body;
 
-    res.status(200).json({ rtpData });
-  } catch (error) {
-    logger.error(`Error fetching RTP data: ${error.message}`);
-    next(error);
-  }
-}
-
-exports.createPayment = async (req, res) => {
-  try {
-    const { name, address, paymentAddress, userId } = req.body;
-    const newPayment = await Payment.create({ name, address, paymentAddress, userId });
-    res.status(201).json(newPayment);
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to create payment' });
-  }
-};
-
-exports.getAllPayments = async (req, res) => {
-  try {
-    const payments = await Payment.findAll();
-    res.status(200).json(payments);
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to fetch payments' });
-  }
-};
-
-exports.getPaymentById = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const payment = await Payment.findByPk(id);
-    if (!payment) {
-      return res.status(404).json({ error: 'Payment not found' });
+    // Check if the invoice exists
+    const invoice = await Invoice.findByPk(invoice_id);
+    if (!invoice) {
+      return res.status(404).json({ error: 'Invoice not found' });
     }
-    res.status(200).json(payment);
+
+    // Check if the session exists
+    // const session = await Session.findByPk(session_id);
+    // if (!session) {
+    //   return res.status(404).json({ error: 'Session not found' });
+    // }
+
+    // Create the RequestToPay
+    const newRequest = await RequestToPay.create({
+      invoice_id,
+      session_id,
+      msgId,
+      purpose,
+      amount,
+      receiverType,
+      senderType,
+      extraData,
+    });
+
+    return res.status(201).json(newRequest);
   } catch (error) {
-    res.status(500).json({ error: 'Failed to fetch payment' });
+    console.error(error);
+    return res.status(500).json({ error: 'Failed to create RequestToPay' });
   }
 };
 
-exports.updatePaymentStatus = async (req, res) => {
+// Get all RequestToPay entries for an invoice
+exports.getRequestToPayByInvoice = async (req, res) => {
   try {
-    const { id } = req.params;
-    const { name, address, paymentAddress } = req.body;
-    const payment = await Payment.findByPk(id);
-    if (!payment) {
-      return res.status(404).json({ error: 'Payment not found' });
+    const invoiceId = req.params.invoice_id;
+
+    // Check if the invoice exists
+    const invoice = await Invoice.findByPk(invoiceId);
+    if (!invoice) {
+      return res.status(404).json({ error: 'Invoice not found' });
     }
-    await payment.update({ name, address, paymentAddress });
-    res.status(200).json(payment);
+
+    // // Retrieve all RequestToPay entries for the invoice
+    // const requests = await RequestToPay.findAll({
+    //   where: { invoice_id: invoiceId },
+    //   include: [{ model: Session }],
+    // });
+
+    return res.status(200).json(requests);
   } catch (error) {
-    res.status(500).json({ error: 'Failed to update payment' });
+    console.error(error);
+    return res.status(500).json({ error: 'Failed to retrieve RequestToPay entries' });
   }
 };
 
-exports.deletePayment = async (req, res) => {
+// Get a single RequestToPay by ID
+exports.getRequestToPayById = async (req, res) => {
   try {
-    const { id } = req.params;
-    const payment = await Payment.findByPk(id);
-    if (!payment) {
-      return res.status(404).json({ error: 'Payment not found' });
+    const requestId = req.params.rtp_id;
+
+    // // Fetch the RequestToPay by ID, including session information
+    // const request = await RequestToPay.findByPk(requestId, {
+    //   include: [{ model: Session }],
+    // });
+
+    if (!request) {
+      return res.status(404).json({ error: 'RequestToPay entry not found' });
     }
-    await payment.destroy();
-    res.status(200).json({ message: 'Payment deleted successfully' });
+
+    return res.status(200).json(request);
   } catch (error) {
-    res.status(500).json({ error: 'Failed to delete payment' });
+    console.error(error);
+    return res.status(500).json({ error: 'Failed to retrieve RequestToPay entry' });
+  }
+};
+
+// Update a RequestToPay
+exports.updateRequestToPay = async (req, res) => {
+  try {
+    const requestId = req.params.rtp_id;
+
+    // Find the RequestToPay entry by ID
+    const request = await RequestToPay.findByPk(requestId);
+
+    if (!request) {
+      return res.status(404).json({ error: 'RequestToPay entry not found' });
+    }
+
+    // Update the RequestToPay entry
+    const updatedRequest = await request.update(req.body);
+
+    return res.status(200).json(updatedRequest);
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: 'Failed to update RequestToPay entry' });
+  }
+};
+
+// Delete a RequestToPay (soft delete)
+exports.deleteRequestToPay = async (req, res) => {
+  try {
+    const requestId = req.params.rtp_id;
+
+    // Find the RequestToPay entry by ID
+    const request = await RequestToPay.findByPk(requestId);
+
+    if (!request) {
+      return res.status(404).json({ error: 'RequestToPay entry not found' });
+    }
+
+    // Soft delete the RequestToPay entry (if paranoid is enabled)
+    await request.destroy();
+
+    return res.status(200).json({ message: 'RequestToPay entry deleted successfully' });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: 'Failed to delete RequestToPay entry' });
   }
 };

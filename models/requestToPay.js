@@ -60,6 +60,11 @@ module.exports = (sequelize, DataTypes) => {
     underscored: true, // Use underscored naming conventions
   });
 
+  RequestToPay.associate = function (models) {
+    RequestToPay.belongsTo(models.Invoice, { foreignKey: 'invoice_id' });
+    // RequestToPay.belongsTo(models.Session, { foreignKey: 'session_id' });
+  };
+
   return RequestToPay;
 };
 

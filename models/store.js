@@ -20,9 +20,16 @@ module.exports = (sequelize, DataTypes) => {
   });
 
   Store.associate = function (models) {
-    Store.belongsTo(models.User, { foreignKey: 'userId' });
-    Store.hasMany(models.Item, { foreignKey: 'storeId' });
-    Store.hasMany(models.Invoice, { foreignKey: 'storeId' });
+    Store.belongsToMany(models.User, { through: models.UserStore, foreignKey: 'store_id' });
+    Store.hasMany(models.Account, { foreignKey: 'store_id' });
+    Store.hasMany(models.Contact, { foreignKey: 'store_id' });
+    Store.hasMany(models.Item, { foreignKey: 'store_id' });
+    Store.hasMany(models.Invoice, { foreignKey: 'store_id' });
+    Store.hasMany(models.Tax, { foreignKey: 'store_id' });
+    Store.hasMany(models.InvoiceItem, { foreignKey: 'store_id' });
+    // Store.hasMany(models.Bill, { foreignKey: 'store_id' });
+    // Store.hasMany(models.ModuleHistory, { foreignKey: 'store_id' });
+    // Store.hasMany(models.BillItem, { foreignKey: 'store_id' });
   };
 
   return Store;

@@ -1,64 +1,121 @@
-'use strict';
+const { Store, User, Tax, Invoice, Item, Bill, Contact, Account, ModuleHistory } = require('../models'); 
 
-const { Store } = require('../models');
-
+// Create a new store
 exports.createStore = async (req, res) => {
   try {
-    const { name, address, paymentAddress, userId } = req.body;
-    const newStore = await Store.create({ name, address, paymentAddress, userId });
-    res.status(201).json(newStore);
+    const { store_name, address, enabled } = req.body;
+    const userId = req.user.id;  // Assuming the authenticated user is creating the store
+
+    // Create the store and associate it with the authenticated user
+    const newStore = await Store.create({
+      store_name,
+      address,
+      enabled,
+    });
+
+    // Associate the store with the user (through UserStore)
+    await newStore.addUser(userId);
+
+    return res.status(201).json(newStore);
   } catch (error) {
-    res.status(500).json({ error: 'Failed to create store' });
+    console.error(error);
+    return res.status(500).json({ error: 'Failed to create store' });
   }
 };
 
-exports.getAllStores = async (req, res) => {
+// Get all stores for a user
+exports.getStoresByUser = async (req, res) => {
   try {
-    const stores = await Store.findAll();
-    res.status(200).json(stores);
+    const userId = req.user.id;
+
+    // Retrieve all stores associated with the user
+    const stores = await Store.findAll({
+      include: [
+        {
+          model: User,
+          where: { id: userId },
+          attributes: ['name', 'email'], // Optionally include user details
+        },
+      ],
+    });
+
+    return res.status(200).json(stores);
   } catch (error) {
-    res.status(500).json({ error: 'Failed to fetch stores' });
+    console.error(error);
+    return res.status(500).json({ error: 'Failed to retrieve stores' });
   }
 };
 
+// Get a single store by ID, including associated data
 exports.getStoreById = async (req, res) => {
   try {
-    const { id } = req.params;
-    const store = await Store.findByPk(id);
+    const storeId = req.params.store_id;
+
+    // Fetch the store by ID, including related data like users, taxes, items, etc.
+    const store = await Store.findByPk(storeId, {
+      include: [
+        { model: User, attributes: ['name', 'email'] },
+        { model: Tax, attributes: ['name', 'rate'] },
+        { model: Invoice },
+        { model: Item },
+        { model: Bill },
+        { model: Contact },
+        { model: Account },
+        { model: ModuleHistory },
+      ],
+    });
+
     if (!store) {
       return res.status(404).json({ error: 'Store not found' });
     }
-    res.status(200).json(store);
+
+    return res.status(200).json(store);
   } catch (error) {
-    res.status(500).json({ error: 'Failed to fetch store' });
+    console.error(error);
+    return res.status(500).json({ error: 'Failed to retrieve store' });
   }
 };
 
+// Update a store
 exports.updateStore = async (req, res) => {
   try {
-    const { id } = req.params;
-    const { name, address, paymentAddress } = req.body;
-    const store = await Store.findByPk(id);
+    const storeId = req.params.store_id;
+
+    // Find the store by ID
+    const store = await Store.findByPk(storeId);
+
     if (!store) {
       return res.status(404).json({ error: 'Store not found' });
     }
-    await store.update({ name, address, paymentAddress });
-    res.status(200).json(store);
+
+    // Update the store
+    const updatedStore = await store.update(req.body);
+
+    return res.status(200).json(updatedStore);
   } catch (error) {
-    res.status(500).json({ error: 'Failed to update store' });
+    console.error(error);
+    return res.status(500).json({ error: 'Failed to update store' });
   }
 };
 
+// Delete a store (soft delete)
 exports.deleteStore = async (req, res) => {
   try {
-    const { id } = req.params;
-    const store = await Store.findByPk(id);
+    const storeId = req.params.store_id;
+
+    // Find the store by ID
+    const store = await Store.findByPk(storeId);
+
     if (!store) {
       return res.status(404).json({ error: 'Store not found' });
     }
+
+    // Soft delete the store (if paranoid is enabled)
     await store.destroy();
-    res.status(200).json({ message: 'Store deleted successfully' });
+
+    return res.status(200).json({ message: 'Store deleted successfully' });
   } catch (error) {
-    res.status(500).json({ error: 'Failed to delete store' });
+    console.error(error);
+    return res.status(500).json({ error: 'Failed to delete store' });
   }
 };

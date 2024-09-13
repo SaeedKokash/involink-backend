@@ -10,10 +10,13 @@ const port = process.env.PORT || 4000;
 
 const authRoutes = require('./routes/auth.routes');
 const userRoutes = require('./routes/user.routes');
-const storeRoutes = require('./routes/sotre.routes');
+const storeRoutes = require('./routes/store.routes');
 const itemRoutes = require('./routes/item.routes');
 const invoiceRoutes = require('./routes/invoice.routes');
 const paymentRoutes = require('./routes/rtp.routes');
+const accountRoutes = require('./routes/account.routes');
+const contactRoutes = require('./routes/contact.routes');
+const taxRoutes = require('./routes/tax.routes');
 
 const authMiddleware = require('./middlewares/authMiddleware');
 const errorHandler = require('./middlewares/errorMiddleware');
@@ -41,10 +44,13 @@ app.use(limiter); // Apply rate limiter to all requests
 
 app.use('/api/auth', authRoutes);
 app.use('/api/users', authMiddleware.protect, userRoutes);
-app.use('/api/stores', authMiddleware.protect, authMiddleware.restrictTo('merchant'), storeRoutes);
-app.use('/api/items', authMiddleware.protect, authMiddleware.restrictTo('merchant'), itemRoutes);
+app.use('/api/stores', authMiddleware.protect, authMiddleware.restrictTo('merchant', 'admin'), storeRoutes);
+app.use('/api/items', authMiddleware.protect, authMiddleware.restrictTo('merchant, admin'), itemRoutes);
 app.use('/api/invoices', authMiddleware.protect, invoiceRoutes);
 app.use('/api/payments', authMiddleware.protect, paymentRoutes);
+app.use('/api/accounts', authMiddleware.protect, accountRoutes);
+app.use('/api/contacts', authMiddleware.protect, contactRoutes);
+app.use('/api/taxes', authMiddleware.protect, taxRoutes);
 
 app.get("/", (req, res) => {
   res.status(200).send("Welcome To involink API");
