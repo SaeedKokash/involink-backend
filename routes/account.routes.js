@@ -4,9 +4,10 @@ const accountController = require('../controllers/accountController');
 
 // CRUD operations for Stores
 router.post('/', accountController.createAccount);
-router.get('/', accountController.getAccountsByStore);
-router.get('/:id', accountController.getAccountById);
-router.put('/:id', accountController.updateAccount);
-router.delete('/:id', accountController.deleteAccount);
+router.get('/:account_id', accountController.getAccountById);
+router.put('/:account_id', accountController.updateAccount);
+router.delete('/:account_id', accountController.deleteAccount);
+
+router.get('/store/:store_id', accountController.getAccountsByStore);
 
 module.exports = router;
