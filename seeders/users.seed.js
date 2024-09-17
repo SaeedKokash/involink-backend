@@ -29,150 +29,150 @@ const seedUsers = async () => {
                 "locale": "en",
                 "landingPage": "/customer"
             },
-            {
-                "name": "Customer",
-                "email": "customer@customer.com",
-                "password": "password",
-                "role": "customer",
-                "locale": "en",
-                "landingPage": "/customer"
-            },
-            {
-                "name": "Customer",
-                "email": "customer@customer.com",
-                "password": "password",
-                "role": "customer",
-                "locale": "en",
-                "landingPage": "/customer"
-            },
-            {
-                "name": "Customer",
-                "email": "customer@customer.com",
-                "password": "password",
-                "role": "customer",
-                "locale": "en",
-                "landingPage": "/customer"
-            },
-            {
-                "name": "Customer",
-                "email": "customer@customer.com",
-                "password": "password",
-                "role": "customer",
-                "locale": "en",
-                "landingPage": "/customer"
-            },
-            {
-                "name": "Customer",
-                "email": "customer@customer.com",
-                "password": "password",
-                "role": "customer",
-                "locale": "en",
-                "landingPage": "/customer"
-            },
-            {
-                "name": "Customer",
-                "email": "customer@customer.com",
-                "password": "password",
-                "role": "customer",
-                "locale": "en",
-                "landingPage": "/customer"
-            },
-            {
-                "name": "Customer",
-                "email": "customer@customer.com",
-                "password": "password",
-                "role": "customer",
-                "locale": "en",
-                "landingPage": "/customer"
-            },
-            {
-                "name": "Customer",
-                "email": "customer@customer.com",
-                "password": "password",
-                "role": "customer",
-                "locale": "en",
-                "landingPage": "/customer"
-            },
-            {
-                "name": "Customer",
-                "email": "customer@customer.com",
-                "password": "password",
-                "role": "customer",
-                "locale": "en",
-                "landingPage": "/customer"
-            },
-            {
-                "name": "Customer",
-                "email": "customer@customer.com",
-                "password": "password",
-                "role": "customer",
-                "locale": "en",
-                "landingPage": "/customer"
-            },
-            {
-                "name": "Customer",
-                "email": "customer@customer.com",
-                "password": "password",
-                "role": "customer",
-                "locale": "en",
-                "landingPage": "/customer"
-            },
-            {
-                "name": "Customer",
-                "email": "customer@customer.com",
-                "password": "password",
-                "role": "customer",
-                "locale": "en",
-                "landingPage": "/customer"
-            },
-            {
-                "name": "Customer",
-                "email": "customer@customer.com",
-                "password": "password",
-                "role": "customer",
-                "locale": "en",
-                "landingPage": "/customer"
-            },
-            {
-                "name": "Customer",
-                "email": "customer@customer.com",
-                "password": "password",
-                "role": "customer",
-                "locale": "en",
-                "landingPage": "/customer"
-            },
-            {
-                "name": "Customer",
-                "email": "customer@customer.com",
-                "password": "password",
-                "role": "customer",
-                "locale": "en",
-                "landingPage": "/customer"
-            },
-            {
-                "name": "Customer",
-                "email": "customer@customer.com",
-                "password": "password",
-                "role": "customer",
-                "locale": "en",
-                "landingPage": "/customer"
-            },
-            {
-                "name": "Customer",
-                "email": "customer@customer.com",
-                "password": "password",
-                "role": "customer",
-                "locale": "en",
-                "landingPage": "/customer"
-            },
-            {
-                "name": "Customer",
-                "email": "customer@customer.com",
-                "password": "password",
-                "role": "customer",
-                "locale": "en",
-                "landingPage": "/customer"
-            }
+            // {
+            //     "name": "Customer",
+            //     "email": "customer@customer.com",
+            //     "password": "password",
+            //     "role": "customer",
+            //     "locale": "en",
+            //     "landingPage": "/customer"
+            // },
+            // {
+            //     "name": "Customer",
+            //     "email": "customer@customer.com",
+            //     "password": "password",
+            //     "role": "customer",
+            //     "locale": "en",
+            //     "landingPage": "/customer"
+            // },
+            // {
+            //     "name": "Customer",
+            //     "email": "customer@customer.com",
+            //     "password": "password",
+            //     "role": "customer",
+            //     "locale": "en",
+            //     "landingPage": "/customer"
+            // },
+            // {
+            //     "name": "Customer",
+            //     "email": "customer@customer.com",
+            //     "password": "password",
+            //     "role": "customer",
+            //     "locale": "en",
+            //     "landingPage": "/customer"
+            // },
+            // {
+            //     "name": "Customer",
+            //     "email": "customer@customer.com",
+            //     "password": "password",
+            //     "role": "customer",
+            //     "locale": "en",
+            //     "landingPage": "/customer"
+            // },
+            // {
+            //     "name": "Customer",
+            //     "email": "customer@customer.com",
+            //     "password": "password",
+            //     "role": "customer",
+            //     "locale": "en",
+            //     "landingPage": "/customer"
+            // },
+            // {
+            //     "name": "Customer",
+            //     "email": "customer@customer.com",
+            //     "password": "password",
+            //     "role": "customer",
+            //     "locale": "en",
+            //     "landingPage": "/customer"
+            // },
+            // {
+            //     "name": "Customer",
+            //     "email": "customer@customer.com",
+            //     "password": "password",
+            //     "role": "customer",
+            //     "locale": "en",
+            //     "landingPage": "/customer"
+            // },
+            // {
+            //     "name": "Customer",
+            //     "email": "customer@customer.com",
+            //     "password": "password",
+            //     "role": "customer",
+            //     "locale": "en",
+            //     "landingPage": "/customer"
+            // },
+            // {
+            //     "name": "Customer",
+            //     "email": "customer@customer.com",
+            //     "password": "password",
+            //     "role": "customer",
+            //     "locale": "en",
+            //     "landingPage": "/customer"
+            // },
+            // {
+            //     "name": "Customer",
+            //     "email": "customer@customer.com",
+            //     "password": "password",
+            //     "role": "customer",
+            //     "locale": "en",
+            //     "landingPage": "/customer"
+            // },
+            // {
+            //     "name": "Customer",
+            //     "email": "customer@customer.com",
+            //     "password": "password",
+            //     "role": "customer",
+            //     "locale": "en",
+            //     "landingPage": "/customer"
+            // },
+            // {
+            //     "name": "Customer",
+            //     "email": "customer@customer.com",
+            //     "password": "password",
+            //     "role": "customer",
+            //     "locale": "en",
+            //     "landingPage": "/customer"
+            // },
+            // {
+            //     "name": "Customer",
+            //     "email": "customer@customer.com",
+            //     "password": "password",
+            //     "role": "customer",
+            //     "locale": "en",
+            //     "landingPage": "/customer"
+            // },
+            // {
+            //     "name": "Customer",
+            //     "email": "customer@customer.com",
+            //     "password": "password",
+            //     "role": "customer",
+            //     "locale": "en",
+            //     "landingPage": "/customer"
+            // },
+            // {
+            //     "name": "Customer",
+            //     "email": "customer@customer.com",
+            //     "password": "password",
+            //     "role": "customer",
+            //     "locale": "en",
+            //     "landingPage": "/customer"
+            // },
+            // {
+            //     "name": "Customer",
+            //     "email": "customer@customer.com",
+            //     "password": "password",
+            //     "role": "customer",
+            //     "locale": "en",
+            //     "landingPage": "/customer"
+            // },
+            // {
+            //     "name": "Customer",
+            //     "email": "customer@customer.com",
+            //     "password": "password",
+            //     "role": "customer",
+            //     "locale": "en",
+            //     "landingPage": "/customer"
+            // }
         ];
         users.forEach(async (user) => {
             await User.create(user);

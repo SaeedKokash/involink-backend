@@ -2,6 +2,8 @@ const { Invoice, Store, Contact, InvoiceItem, RequestToPay,
   // InvoiceItemTax, InvoiceHistory 
 } = require('../models');
 
+const { sequelize } = require('../models');
+
 // Create a new invoice
 exports.createInvoice = async (req, res) => {
   const t = await sequelize.transaction(); // Use a transaction for consistency
