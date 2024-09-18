@@ -47,7 +47,7 @@ module.exports = (sequelize, DataTypes) => {
     }, {
         timestamps: true,
         paranoid: true,
-        underscored: true,
+        // underscored: true,
     });
 
     InvoiceItem.associate = function (models) {

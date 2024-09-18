@@ -4,10 +4,10 @@ const invoiceController = require('../controllers/invoiceController');
 
 // CRUD operations for Invoices
 router.post('/', invoiceController.createInvoice);
-router.get('/:id', invoiceController.getInvoiceById);
-router.put('/:id', invoiceController.updateInvoice);
-router.delete('/:id', invoiceController.deleteInvoice);
+router.get('/:invoice_id', invoiceController.getInvoiceById);
+router.put('/:invoice_id', invoiceController.updateInvoice);
+router.delete('/:invoice_id', invoiceController.deleteInvoice);
 
-router.get('/store/:id', invoiceController.getInvoicesByStore);
+router.get('/store/:store_id', invoiceController.getInvoicesByStore);
 
 module.exports = router;

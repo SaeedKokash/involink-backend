@@ -16,7 +16,7 @@ module.exports = (sequelize, DataTypes) => {
   }, {
     timestamps: true,
     paranoid: true,
-    underscored: true,
+    // underscored: true,
   });
 
   Store.associate = function (models) {

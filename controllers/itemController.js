@@ -1,4 +1,6 @@
-const { Item, Store, Tax, Category } = require('../models'); // Import necessary models
+const { Item, Store, Tax, 
+  // Category 
+} = require('../models'); // Import necessary models
 
 // Create a new item
 exports.createItem = async (req, res) => {
@@ -23,10 +25,10 @@ exports.createItem = async (req, res) => {
     }
 
     // Check if the category exists
-    const category = await Category.findByPk(category_id);
-    if (!category) {
-      return res.status(404).json({ error: 'Category not found' });
-    }
+    // const category = await Category.findByPk(category_id);
+    // if (!category) {
+    //   return res.status(404).json({ error: 'Category not found' });
+    // }
 
     // Check if the tax exists (if tax_id is provided)
     if (tax_id) {
@@ -53,7 +55,7 @@ exports.createItem = async (req, res) => {
     return res.status(201).json(newItem);
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ error: 'Failed to create item' });
+    return res.status(500).json({ error: error.message });
   }
 };
 
@@ -72,7 +74,7 @@ exports.getItemsByStore = async (req, res) => {
     const items = await Item.findAll({
       where: { store_id: storeId },
       include: [
-        { model: Category, attributes: ['name'] },
+        // { model: Category, attributes: ['name'] },
         { model: Tax, attributes: ['name', 'rate'] },
       ],
     });
@@ -92,7 +94,7 @@ exports.getItemById = async (req, res) => {
     // Fetch the item by ID, including related category and tax details
     const item = await Item.findByPk(itemId, {
       include: [
-        { model: Category, attributes: ['name'] },
+        // { model: Category, attributes: ['name'] },
         { model: Tax, attributes: ['name', 'rate'] },
       ],
     });
@@ -130,12 +132,12 @@ exports.updateItem = async (req, res) => {
       }
     }
 
-    if (category_id) {
-      const category = await Category.findByPk(category_id);
-      if (!category) {
-        return res.status(404).json({ error: 'Category not found' });
-      }
-    }
+    // if (category_id) {
+    //   const category = await Category.findByPk(category_id);
+    //   if (!category) {
+    //     return res.status(404).json({ error: 'Category not found' });
+    //   }
+    // }
 
     if (tax_id) {
       const tax = await Tax.findByPk(tax_id);
