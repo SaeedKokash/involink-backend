@@ -37,12 +37,13 @@ module.exports = (sequelize, DataTypes) => {
     },
     enabled: {
       type: DataTypes.BOOLEAN,
+      defaultValue: true,
       allowNull: false,
     },
   }, {
     timestamps: true,
     paranoid: true,
-    underscored: true,
+    // underscored: true,
   });
 
   // Define the relationship with Store
@@ -50,55 +51,6 @@ module.exports = (sequelize, DataTypes) => {
     Item.belongsTo(models.Store, { foreignKey: 'store_id' });
     Item.belongsTo(models.Tax, { foreignKey: 'tax_id' });
     // Item.belongsTo(models.Category, { foreignKey: 'category_id' });
-  };
-
-  return Item;
-};
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// models/item.js
-module.exports = (sequelize, DataTypes) => {
-  const Item = sequelize.define('Item', {
-    name: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
-    description: {
-      type: DataTypes.TEXT,
-    },
-    price: {
-      type: DataTypes.FLOAT,
-      allowNull: false,
-    },
-    stockQuantity: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
-    },
-  });
-
-  Item.associate = function (models) {
-    Item.belongsTo(models.Store, { foreignKey: 'storeId' });
   };
 
   return Item;

@@ -13,7 +13,7 @@ module.exports = (sequelize, DataTypes) => {
     }, {
         timestamps: true,
         paranoid: true,
-        underscored: true,
+        // underscored: true,
     });
 
     UserStore.associate = function (models) {

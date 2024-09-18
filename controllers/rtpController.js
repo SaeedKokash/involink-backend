@@ -58,11 +58,11 @@ exports.getRequestToPayByInvoice = async (req, res) => {
       return res.status(404).json({ error: 'Invoice not found' });
     }
 
-    // // Retrieve all RequestToPay entries for the invoice
-    // const requests = await RequestToPay.findAll({
-    //   where: { invoice_id: invoiceId },
-    //   include: [{ model: Session }],
-    // });
+    // Retrieve all RequestToPay entries for the invoice
+    const requests = await RequestToPay.findAll({
+      where: { invoice_id: invoiceId },
+      // include: [{ model: Session }],
+    });
 
     return res.status(200).json(requests);
   } catch (error) {
@@ -76,10 +76,10 @@ exports.getRequestToPayById = async (req, res) => {
   try {
     const requestId = req.params.rtp_id;
 
-    // // Fetch the RequestToPay by ID, including session information
-    // const request = await RequestToPay.findByPk(requestId, {
-    //   include: [{ model: Session }],
-    // });
+    // Fetch the RequestToPay by ID, including session information
+    const request = await RequestToPay.findByPk(requestId, {
+      // include: [{ model: Session }],
+    });
 
     if (!request) {
       return res.status(404).json({ error: 'RequestToPay entry not found' });

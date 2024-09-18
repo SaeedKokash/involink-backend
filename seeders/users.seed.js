@@ -184,3 +184,33 @@ const seedUsers = async () => {
 }
 
 module.exports = { seedUsers };
+
+//1. npx sequelize-cli seed:generate --name seed-users
+//2. 'use strict';
+
+// module.exports = {
+//   up: async (queryInterface, Sequelize) => {
+//     await queryInterface.bulkInsert('Users', [
+//       {
+//         name: 'John Doe',
+//         email: 'john@example.com',
+//         password: 'password123', // Hash this if necessary
+//         createdAt: new Date(),
+//         updatedAt: new Date(),
+//       },
+//       {
+//         name: 'Jane Smith',
+//         email: 'jane@example.com',
+//         password: 'password123',
+//         createdAt: new Date(),
+//         updatedAt: new Date(),
+//       },
+//     ]);
+//   },
+
+//   down: async (queryInterface, Sequelize) => {
+//     await queryInterface.bulkDelete('Users', null, {});
+//   }
+// };
+
+//3. npx sequelize-cli db:seed:all

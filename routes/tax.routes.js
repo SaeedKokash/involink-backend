@@ -4,9 +4,9 @@ const taxController = require('../controllers/taxController');
 
 // CRUD operations for Stores
 router.post('/', taxController.createTax);
-router.get('/store/:id', taxController.getTaxesByStore);
-router.get('/:id', taxController.getTaxById);
-router.put('/:id', taxController.updateTax);
-router.delete('/:id', taxController.deleteTax);
+router.get('/store/:store_id', taxController.getTaxesByStore);
+router.get('/:tax_id', taxController.getTaxById);
+router.put('/:tax_id', taxController.updateTax);
+router.delete('/:tax_id', taxController.deleteTax);
 
 module.exports = router;

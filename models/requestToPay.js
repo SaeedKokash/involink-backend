@@ -1,11 +1,11 @@
 module.exports = (sequelize, DataTypes) => {
   const RequestToPay = sequelize.define('RequestToPay', {
-    invoiceId: {
+    invoice_id: {
       type: DataTypes.INTEGER,
       // allowNull: false,
       // field: 'invoice_id',
     },
-    sessionId: {
+    session_id: {
       type: DataTypes.INTEGER,
       // allowNull: false,
       // field: 'session_id',
@@ -54,10 +54,10 @@ module.exports = (sequelize, DataTypes) => {
       // field: 'extraData',
     },
   }, {
-    tableName: 'request_to_pay', // Explicitly specify the table name
+    // tableName: 'request_to_pay', // Explicitly specify the table name
     timestamps: true, // Enable Sequelize to automatically manage `createdAt` and `updatedAt`
     paranoid: true,  // Enable `deletedAt` to perform soft deletes
-    underscored: true, // Use underscored naming conventions
+    // underscored: true, // Use underscored naming conventions
   });
 
   RequestToPay.associate = function (models) {

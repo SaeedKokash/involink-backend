@@ -45,7 +45,7 @@ app.use(limiter); // Apply rate limiter to all requests
 app.use('/api/auth', authRoutes);
 app.use('/api/users', authMiddleware.protect, userRoutes);
 app.use('/api/stores', authMiddleware.protect, authMiddleware.restrictTo('merchant', 'admin'), storeRoutes);
-app.use('/api/items', authMiddleware.protect, authMiddleware.restrictTo('merchant, admin'), itemRoutes);
+app.use('/api/items', authMiddleware.protect, authMiddleware.restrictTo('merchant', 'admin'), itemRoutes);
 app.use('/api/invoices', authMiddleware.protect, invoiceRoutes);
 app.use('/api/rtps', authMiddleware.protect, rtpRoutes);
 app.use('/api/accounts', authMiddleware.protect, accountRoutes);
