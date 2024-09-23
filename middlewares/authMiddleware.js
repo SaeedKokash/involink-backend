@@ -1,40 +1,85 @@
-const createError = require('http-errors');
 const logger = require('../config/logger');
 const { verifyToken } = require('../utils/tokenUtils');
+const { User, Role } = require('../models');
 
-// // Middleware to protect routes with access tokens
-exports.protect = async (req, res, next) => {
+// Middleware to authenticate user
+exports.authenticate = async (req, res, next) => {
   try {
     const authHeader = req.headers.authorization;
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
       logger.warn('No token provided');
-      throw createError(401, 'You are not logged in!');
+      return next({ statusCode: 401, message: 'Authorization header missing or invalid.' });
     }
 
     const token = authHeader.split(' ')[1];
     const decoded = await verifyToken(token, process.env.JWT_SECRET);
 
-    req.user = decoded;
+    const user = await User.findByPk(decoded.id, { 
+      include: [
+      {
+        model: Role,
+        as: 'Roles',
+        attributes: ['name'],
+        through: { attributes: [] }
+      }
+    ]
+    });
+    if (!user) return next({ statusCode: 401, message: 'User not found!' });
+    req.user = user;
+
     logger.info(`User ${decoded.id} authenticated successfully`);
     next();
   } catch (err) {
     logger.warn(`Token verification failed: ${err.message}`);
-    next(createError(401, 'Invalid or expired token!'));
+    next({ statusCode: 401, message: 'Invalid or expired token!' });
   }
 };
 
 // Middleware to restrict access to specific roles
-exports.restrictTo = (...role) => {
-  return (req, res, next) => {
-    if (!role.includes(req.user.role)) {
-      logger.warn(`User role ${req.user.role} is not authorized to access this route`);
-      return next(createError(403, 'You do not have permission to perform this action!'));
+
+// Version 1
+// exports.authorize = (requiredRole) => (req, res, next) => {
+//   if (req.user.Roles.some(role => role.name === requiredRole)) {
+//     next();
+//   } else {
+//     logger.warn(`User ${req.user.id} is not authorized to access this resource`);
+//     next({ statusCode: 403, message: 'You are not authorized to access this resource' })
+//   }
+// };
+
+// Version 2
+exports.authorize = (requiredRole) => async (req, res, next) => {
+  try {
+    const user = req.user;
+    const roles = await user.getRoles({ attributes: ['name'] });
+    if (roles.some(role => role.name === requiredRole)) {
+      next();
+    } else {
+      logger.warn(`User ${user.id} is not authorized to access this resource`);
+      next({ statusCode: 403, message: 'You are not authorized to access this resource' });
     }
-    next();
+  } catch (err) {
+    logger.error(`Error authorizing user: ${err.message}`);
+    next(err);
   }
 };
 
-// // Middleware to handle refresh tokens
+// Version 3
+// exports.authorize = (requiredRoles = []) => {
+//   return (req, res, next) => {
+//     const userRoles = req.user.Roles.map((role) => role.name);
+
+//     const hasRole = requiredRoles.some((role) => userRoles.includes(role));
+
+//     if (!hasRole) {
+//       return res.status(403).json({ message: 'Forbidden: Access is denied.' });
+//     }
+
+//     next();
+//   };
+// };
+    
+// Middleware to handle refresh tokens
 exports.refreshToken = async (req, res, next) => {
   try {
     const { refreshToken } = req.body;

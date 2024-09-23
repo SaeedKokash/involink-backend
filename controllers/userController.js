@@ -4,8 +4,6 @@ const { User, Store, Role, Permission, Contact } = require('../models');
 const logger = require('../config/logger');
 const { paginate } = require('../utils/pagination');
 
-const bcrypt = require('bcrypt');
-
 exports.getUsers = async (req, res, next) => {
   try {
     const page = parseInt(req.query.page) || 1;
@@ -29,8 +27,8 @@ exports.getUserById = async (req, res, next) => {
     const user = await User.findByPk(userId, {
       include: [
         { model: Store, attributes: ['store_name'] },
-        // { model: Role, attributes: ['name'] },
-        // { model: Permission, attributes: ['name'] },
+        { model: Role, attributes: ['name'] },
+        { model: Permission, attributes: ['name'] },
         { model: Contact },
       ],
     });

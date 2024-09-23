@@ -43,14 +43,14 @@ app.use(limiter); // Apply rate limiter to all requests
 // }));
 
 app.use('/api/auth', authRoutes);
-app.use('/api/users', authMiddleware.protect, userRoutes);
-app.use('/api/stores', authMiddleware.protect, authMiddleware.restrictTo('merchant', 'admin'), storeRoutes);
-app.use('/api/items', authMiddleware.protect, authMiddleware.restrictTo('merchant', 'admin'), itemRoutes);
-app.use('/api/invoices', authMiddleware.protect, invoiceRoutes);
-app.use('/api/rtps', authMiddleware.protect, rtpRoutes);
-app.use('/api/accounts', authMiddleware.protect, accountRoutes);
-app.use('/api/contacts', authMiddleware.protect, contactRoutes);
-app.use('/api/taxes', authMiddleware.protect, taxRoutes);
+app.use('/api/users', authMiddleware.authenticate, userRoutes);
+app.use('/api/stores', authMiddleware.authenticate, authMiddleware.authorize('merchant', 'admin'), storeRoutes);
+app.use('/api/items', authMiddleware.authenticate, authMiddleware.authorize('merchant', 'admin'), itemRoutes);
+app.use('/api/invoices', authMiddleware.authenticate, invoiceRoutes);
+app.use('/api/rtps', authMiddleware.authenticate, rtpRoutes);
+app.use('/api/accounts', authMiddleware.authenticate, accountRoutes);
+app.use('/api/contacts', authMiddleware.authenticate, contactRoutes);
+app.use('/api/taxes', authMiddleware.authenticate, taxRoutes);
 
 app.get("/", (req, res) => {
   res.status(200).send("Welcome To involink API");

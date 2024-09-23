@@ -1,7 +1,8 @@
-const { Store, User, Tax, Invoice, Item, Bill, Contact, Account, ModuleHistory } = require('../models'); 
+const { Store, UserStore, User, Tax, Invoice, Item, Contact, Account } = require('../models'); 
+const logger = require('../config/logger');
 
 // Create a new store
-exports.createStore = async (req, res) => {
+exports.createStore = async (req, res, next) => {
   try {
     const { store_name, address, enabled } = req.body;
     const userId = req.user.id;  // Assuming the authenticated user is creating the store
@@ -14,17 +15,21 @@ exports.createStore = async (req, res) => {
     });
 
     // Associate the store with the user (through UserStore)
-    await newStore.addUser(userId);
+    await UserStore.create({
+      user_id: userId,
+      store_id: newStore.id,
+      user_type: 'User',
+    });
 
     return res.status(201).json(newStore);
   } catch (error) {
-    console.error(error);
-    return res.status(500).json({ error: 'Failed to create store' });
+    logger.error(`Error creating store: ${error.message}`);
+    next(error);
   }
 };
 
 // Get all stores for a user
-exports.getStoresByUser = async (req, res) => {
+exports.getStoresByUser = async (req, res, next) => {
   try {
     const userId = req.user.id;
 
@@ -47,7 +52,7 @@ exports.getStoresByUser = async (req, res) => {
 };
 
 // // Get all stores
-// exports.getAllStores = async (req, res) => {
+// exports.getAllStores = async (req, res, next) => {
 //   try {
 //     // Retrieve all stores
 //     const stores = await Store.findAll();
@@ -60,7 +65,7 @@ exports.getStoresByUser = async (req, res) => {
 // };
 
 // Get a single store by ID, including associated data
-exports.getStoreById = async (req, res) => {
+exports.getStoreById = async (req, res, next) => {
   try {
     const storeId = req.params.store_id;
 
@@ -93,7 +98,7 @@ exports.getStoreById = async (req, res) => {
 };
 
 // Update a store
-exports.updateStore = async (req, res) => {
+exports.updateStore = async (req, res, next) => {
   try {
     const storeId = req.params.store_id;
 
@@ -127,7 +132,7 @@ exports.updateStore = async (req, res) => {
 };
 
 // Delete a store (soft delete)
-exports.deleteStore = async (req, res) => {
+exports.deleteStore = async (req, res, next) => {
   try {
     const storeId = req.params.store_id;
 
@@ -153,7 +158,7 @@ exports.deleteStore = async (req, res) => {
 };
 
 // Restore a deleted store
-exports.restoreStore = async (req, res) => {
+exports.restoreStore = async (req, res, next) => {
   try {
     const storeId = req.params.store_id;
 

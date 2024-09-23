@@ -1,7 +1,9 @@
-const { Contact, Store, User } = require('../models'); // Assuming your models are in a folder called models
+const { Contact, UserStore } = require('../models'); // Assuming your models are in a folder called models
+
+const logger = require('../config/logger');
 
 // Create a new contact
-exports.createContact = async (req, res) => {
+exports.createContact = async (req, res, next) => {
   try {
     const {
       name,
@@ -15,20 +17,25 @@ exports.createContact = async (req, res) => {
       enabled,
       reference,
       store_id,
-      user_id,
+      user_id = req.user.id,
     } = req.body;
 
-    // Check if the store exists
-    const store = await Store.findByPk(store_id);
-    if (!store) {
-      return res.status(404).json({ error: 'Store not found' });
+    // Check if user has access to the store
+    const userStore = await UserStore.findOne({
+      where: { user_id: req.user.id, store_id },
+    });
+
+    if (!userStore) {
+      next({ statusCode: 403, message: 'You are not authorized to access this resource' });
     }
 
-    // Optionally check if the user exists if `user_id` is provided
-    if (user_id) {
-      const user = await User.findByPk(user_id);
-      if (!user) {
-        return res.status(404).json({ error: 'User not found' });
+    // Ensure email is unique per store and type
+    if (email) {
+      const existingContact = await Contact.findOne({
+        where: { store_id, type, email },
+      });
+      if (existingContact) {
+        next({ statusCode: 400, message: 'Contact with email already exists' });
       }
     }
 
@@ -50,13 +57,13 @@ exports.createContact = async (req, res) => {
 
     return res.status(201).json(newContact);
   } catch (error) {
-    console.error(error);
-    return res.status(500).json({ error: 'Failed to create contact' });
+    logger.error(`Error creating contact: ${error.message}`);
+    next(error);
   }
 };
 
 // Get all contacts for a store
-exports.getContactsByStore = async (req, res) => {
+exports.getContactsByStore = async (req, res, next) => {
   try {
     const storeId = req.params.store_id;
 
@@ -79,7 +86,7 @@ exports.getContactsByStore = async (req, res) => {
 };
 
 // Get a single contact by ID
-exports.getContactById = async (req, res) => {
+exports.getContactById = async (req, res, next) => {
   try {
     const contactId = req.params.contact_id;
 
@@ -103,7 +110,7 @@ exports.getContactById = async (req, res) => {
 };
 
 // Update a contact
-exports.updateContact = async (req, res) => {
+exports.updateContact = async (req, res, next) => {
   try {
     const contactId = req.params.contact_id;
 
@@ -125,7 +132,7 @@ exports.updateContact = async (req, res) => {
 };
 
 // Delete a contact (soft delete)
-exports.deleteContact = async (req, res) => {
+exports.deleteContact = async (req, res, next) => {
   try {
     const contactId = req.params.contact_id;
 

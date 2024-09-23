@@ -7,35 +7,12 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.STRING,
       allowNull: false,
     },
-    email: {
-      type: DataTypes.STRING,
-      allowNull: false,
-      // unique: true,
-      validate: {
-        isEmail: true,
-      },
-    },
+    email: { type: DataTypes.STRING, unique: 'email_deleted_at', allowNull: false },
     password: {
       type: DataTypes.STRING,
       allowNull: false,
     },
-    role: {
-      type: DataTypes.ENUM('admin', 'merchant', 'customer'),
-      defaultValue: 'customer',
-      allowNull: false,
-    },
-    permissions: {
-      type: DataTypes.VIRTUAL,
-      get() {
-        const acl = {
-          admin: ['create', 'read', 'update', 'delete'],
-          merchant: ['create', 'read', 'update'],
-          customer: ['read'],
-        };
-        return acl[this.role];
-      },
-    },
-    refreshToken: {
+    remember_token: {
       type: DataTypes.STRING,
     },
     lastLoggedInAt: {
@@ -43,7 +20,6 @@ module.exports = (sequelize, DataTypes) => {
     },
     locale: {
       type: DataTypes.STRING,
-      // allowNull: false,
     },
     landingPage: {
       type: DataTypes.STRING,
@@ -54,8 +30,10 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: false,
     }
   }, {
+    tableName: 'users',
     timestamps: true,
     paranoid: true,
+    underscored: true,
     hooks: {
       beforeCreate: async (user) => {
         user.password = await bcrypt.hash(user.password, 10);
@@ -72,12 +50,23 @@ module.exports = (sequelize, DataTypes) => {
     return bcrypt.compare(password, this.password);
   };
 
-  // Define the many-to-many relationship with Permission
-  User.associate = function (models) {
-    User.belongsToMany(models.Store, { through: models.UserStore, foreignKey: 'user_id' });
+  User.associate = (models) => {
+    User.belongsToMany(models.Role, {
+      through: models.UserRole,
+      foreignKey: 'user_id',
+      otherKey: 'role_id',
+    });
+    User.belongsToMany(models.Permission, {
+      through: models.UserPermission,
+      foreignKey: 'user_id',
+      otherKey: 'permission_id',
+    });
+    User.belongsToMany(models.Store, {
+      through: models.UserStore,
+      foreignKey: 'user_id',
+      otherKey: 'store_id',
+    });
     User.hasMany(models.Contact, { foreignKey: 'user_id' });
-    // User.belongsToMany(models.Permission, { through: models.UserPermissions, foreignKey: 'user_id' });
-    // User.belongsToMany(models.Role, { through: models.UserRoles, foreignKey: 'user_id' });
   };
 
   return User;
