@@ -5,7 +5,13 @@ const errorHandler = (err, req, res, next) => {
   const statusCode = err.statusCode || 500;
   const status = `${statusCode}`.startsWith('4') ? 'fail' : 'error';
 
-  // Log the error
+  // // Log the error if the status code is 500
+  // if (statusCode === 500) {
+  //   logger.error(`${statusCode} - ${err.message} - ${req.originalUrl} - ${req.method} - ${req.ip}`, {
+  //     stack: err.stack,
+  //   });
+  // }
+
   logger.error(`${statusCode} - ${err.message} - ${req.originalUrl} - ${req.method} - ${req.ip}`, {
     stack: err.stack,
   });

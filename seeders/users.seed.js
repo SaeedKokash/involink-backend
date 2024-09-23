@@ -1,6 +1,6 @@
 'use strict';
 
-const { User } = require('../models');
+const { User, Role, UserRole } = require('../models');
 
 const seedUsers = async () => {
     try {
@@ -175,8 +175,24 @@ const seedUsers = async () => {
             // }
         ];
         users.forEach(async (user) => {
-            await User.create(user);
+            const newUser = await User.create({
+                name: user.name,
+                email: user.email,
+                password: user.password,
+                locale: user.locale,
+                landingPage: user.landingPage
+            });
+
+            const role = await Role.findOne({ where: { name: user.role } });
+            if (role) {
+                await UserRole.create({
+                    user_id: newUser.id,
+                    role_id: role.id,
+                    user_type: user.role,
+                });
+            }
         });
+
         console.log('Users seeded successfully');
     } catch (err) {
         console.error('Error seeding users', err);

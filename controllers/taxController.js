@@ -1,16 +1,21 @@
-const { Tax, Store, 
+const { Tax, Store, UserStore  
     // InvoiceItemTax, BillItemTax
- } = require('../models'); // Import necessary models
+ } = require('../models'); // Import necessary models'
+
+ const logger = require('../config/logger');
 
 // Create a new tax
-exports.createTax = async (req, res) => {
+exports.createTax = async (req, res, next) => {
   try {
     const { store_id, name, rate, type, enabled } = req.body;
 
-    // Check if the store exists
-    const store = await Store.findByPk(store_id);
-    if (!store) {
-      return res.status(404).json({ error: 'Store not found' });
+    // Check if user has access to the store
+    const userStore = await UserStore.findOne({
+      where: { user_id: req.user.id, store_id },
+    });
+
+    if (!userStore) {
+      next({ statusCode: 403, message: 'You are not authorized to access this resource' });
     }
 
     // Create the tax
@@ -24,13 +29,13 @@ exports.createTax = async (req, res) => {
 
     return res.status(201).json(newTax);
   } catch (error) {
-    console.error(error);
-    return res.status(500).json({ error: 'Failed to create tax' });
+    logger.error(`Error creating tax: ${error.message}`);
+    next(error);
   }
 };
 
 // Get all taxes for a store
-exports.getTaxesByStore = async (req, res) => {
+exports.getTaxesByStore = async (req, res, next) => {
   try {
     const storeId = req.params.store_id;
 
@@ -53,7 +58,7 @@ exports.getTaxesByStore = async (req, res) => {
 };
 
 // Get a single tax by ID
-exports.getTaxById = async (req, res) => {
+exports.getTaxById = async (req, res, next) => {
   try {
     const taxId = req.params.tax_id;
 
@@ -78,7 +83,7 @@ exports.getTaxById = async (req, res) => {
 };
 
 // Update a tax
-exports.updateTax = async (req, res) => {
+exports.updateTax = async (req, res, next) => {
   try {
     const taxId = req.params.tax_id;
 
@@ -100,7 +105,7 @@ exports.updateTax = async (req, res) => {
 };
 
 // Delete a tax (soft delete)
-exports.deleteTax = async (req, res) => {
+exports.deleteTax = async (req, res, next) => {
   try {
     const taxId = req.params.tax_id;
 

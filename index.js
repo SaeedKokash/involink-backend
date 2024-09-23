@@ -3,6 +3,7 @@ const server = require("./server.js");
 const db = require("./models").sequelize; // You can also use .models.index to be more explicit
 
 const { seedUsers } = require("./seeders/users.seed");
+const { seedRoles } = require("./seeders/role.seed");
 
 const DB_SYNC = "alter";
 
@@ -18,6 +19,8 @@ if (DB_SYNC === databaseSyncStatus.force) {
   db.sync({ force: true })
     .then(() => {
       server.start();
+      seedRoles();
+      console.log("Database reset and seeded with new roles");
       seedUsers();
       console.log("Database reset and seeded with new users");
     })

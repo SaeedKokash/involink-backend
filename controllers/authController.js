@@ -1,24 +1,34 @@
 'use strict';
 
-const createError = require('http-errors');
 const logger = require('../config/logger');
-const { User, RefreshToken } = require('../models');
+const { User, RefreshToken, Role, UserRole } = require('../models');
 const { signAccessToken, signRefreshToken } = require('../utils/tokenUtils');
 const jwt = require('jsonwebtoken');
 require('dotenv').config();
 
-
 exports.signup = async (req, res, next) => {
   try {
-    const { name, email, password, role } = req.body;
+    const { name, email, password } = req.body;
 
     // Check if user exists
-    const existingUser = await User.findOne({ where: { email } });
+    const existingUser = await User.findOne({ where: { email }, paranoid: false });
     if (existingUser) {
-      return res.status(400).json({ message: 'Email already in use' });
+      return next({ statusCode: 400, message: 'User already exists' });
     }
 
-    const user = await User.create({ name, email, password, role });
+    const user = await User.create({ name, email, password, enabled: true, locale: 'en' });
+
+    // Assign 'merchant' role
+    const role = await Role.findOne({ where: { name: 'merchant' } });
+    if (role) {
+      await UserRole.create({
+        user_id: user.id,
+        role_id: role.id,
+        user_type: 'User',
+      });
+    } else {
+      logger.error('Role not found');
+    }
 
     const accessToken = signAccessToken(user);
     const refreshToken = await signRefreshToken(user);
@@ -32,9 +42,8 @@ exports.signup = async (req, res, next) => {
 
     logger.info(`User registered: ${user.email}`);
 
-    res.status(201).json({ accessToken });
+    res.status(201).json({ accessToken, user });
   } catch (error) {
-    console.log(error)
     logger.error(`Error registering user: ${error.message}`);
     next(error);
   }
@@ -62,7 +71,7 @@ exports.login = async (req, res, next) => {
 
     logger.info(`User logged in: ${user.email}`);
 
-    res.status(200).json({ user, accessToken });
+    res.status(200).json({ accessToken, user });
   } catch (error) {
     logger.error(`Error logging in user: ${error.message}`);
     next(error);

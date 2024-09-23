@@ -1,9 +1,10 @@
-const { Item, Store, Tax, 
-  // Category 
+const { Item, UserStore, Store, Tax, 
+  // Category
 } = require('../models'); // Import necessary models
+const logger = require('../config/logger');
 
 // Create a new item
-exports.createItem = async (req, res) => {
+exports.createItem = async (req, res, next) => {
   try {
     const {
       name,
@@ -18,23 +19,22 @@ exports.createItem = async (req, res) => {
       store_id,
     } = req.body;
 
-    // Check if the store exists
-    const store = await Store.findByPk(store_id);
-    if (!store) {
-      return res.status(404).json({ error: 'Store not found' });
+    // Check if user has access to the store
+    const userStore = await UserStore.findOne({
+      where: { user_id: req.user.id, store_id },
+    });
+
+    if (!userStore) {
+      next({ statusCode: 403, message: 'You are not authorized to access this resource' });
     }
 
-    // Check if the category exists
-    // const category = await Category.findByPk(category_id);
-    // if (!category) {
-    //   return res.status(404).json({ error: 'Category not found' });
-    // }
-
-    // Check if the tax exists (if tax_id is provided)
-    if (tax_id) {
-      const tax = await Tax.findByPk(tax_id);
-      if (!tax) {
-        return res.status(404).json({ error: 'Tax not found' });
+    // Ensure SKU is unique per store
+    if (sku) {
+      const existingItem = await Item.findOne({
+        where: { store_id, sku },
+      });
+      if (existingItem) {
+        next({ statusCode: 400, message: 'SKU already exists' });
       }
     }
 
@@ -54,20 +54,23 @@ exports.createItem = async (req, res) => {
 
     return res.status(201).json(newItem);
   } catch (error) {
-    console.error(error);
-    return res.status(500).json({ error: error.message });
+    logger.error(`Error creating item: ${error.message}`);
+    next(error);
   }
 };
 
 // Get all items for a store
-exports.getItemsByStore = async (req, res) => {
+exports.getItemsByStore = async (req, res, next) => {
   try {
     const storeId = req.params.store_id;
 
-    // Check if the store exists
-    const store = await Store.findByPk(storeId);
-    if (!store) {
-      return res.status(404).json({ error: 'Store not found' });
+    // Check if user has access to the store
+    const userStore = await UserStore.findOne({
+      where: { user_id: req.user.id, storeId },
+    });
+
+    if (!userStore) {
+      next({ statusCode: 403, message: 'You are not authorized to access this store' });
     }
 
     // Retrieve all items for the store
@@ -81,13 +84,13 @@ exports.getItemsByStore = async (req, res) => {
 
     return res.status(200).json(items);
   } catch (error) {
-    console.error(error);
-    return res.status(500).json({ error: 'Failed to retrieve items' });
+    logger.error(`Error retrieving items: ${error.message}`);
+    next(error);
   }
 };
 
 // Get a single item by ID
-exports.getItemById = async (req, res) => {
+exports.getItemById = async (req, res, next) => {
   try {
     const itemId = req.params.item_id;
 
@@ -111,7 +114,7 @@ exports.getItemById = async (req, res) => {
 };
 
 // Update an item
-exports.updateItem = async (req, res) => {
+exports.updateItem = async (req, res, next) => {
   try {
     const itemId = req.params.item_id;
 
@@ -157,7 +160,7 @@ exports.updateItem = async (req, res) => {
 };
 
 // Delete an item (soft delete)
-exports.deleteItem = async (req, res) => {
+exports.deleteItem = async (req, res, next) => {
   try {
     const itemId = req.params.item_id;
 

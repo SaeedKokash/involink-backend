@@ -1,15 +1,20 @@
-const { Account, Store } = require('../models'); // Assuming your models are in a folder called models
+const { Account, Store, UserStore } = require('../models'); // Assuming your models are in a folder called models
+const logger = require('../config/logger');
 
 // Create a new account
-exports.createAccount = async (req, res) => {
+exports.createAccount = async (req, res, next) => {
   try {
     const { name, number, currency_code, opening_balance, bank_name, bank_phone, bank_address, enabled } = req.body;
 
     const storeId = req.body.store_id || req.params.store_id;  // Make sure the store ID is provided
 
-    const store = await Store.findByPk(storeId);
-    if (!store) {
-      return res.status(404).json({ error: 'Store not found' });
+    // Check if user has access to the store
+    const userStore = await UserStore.findOne({
+      where: { user_id: req.user.id, store_id: storeId },
+    });
+
+    if (!userStore) {
+      next({ statusCode: 403, message: 'You are not authorized to access this resource' });
     }
 
     const newAccount = await Account.create({
@@ -26,13 +31,13 @@ exports.createAccount = async (req, res) => {
 
     return res.status(201).json(newAccount);
   } catch (error) {
-    console.error(error);
-    return res.status(500).json({ error: 'Failed to create account' });
+    logger.error(`Error creating account: ${error.message}`);
+    next(error);
   }
 };
 
 // Get all accounts for a store
-exports.getAccountsByStore = async (req, res) => {
+exports.getAccountsByStore = async (req, res, next) => {
   try {
     const storeId = req.params.store_id;
 
@@ -47,13 +52,13 @@ exports.getAccountsByStore = async (req, res) => {
 
     return res.status(200).json(accounts);
   } catch (error) {
-    console.error(error);
-    return res.status(500).json({ error: 'Failed to retrieve accounts' });
+    logger.error(`Error retrieving accounts: ${error.message}`);
+    next(error);
   }
 };
 
 // Get a single account by ID
-exports.getAccountById = async (req, res) => {
+exports.getAccountById = async (req, res, next) => {
   try {
     const accountId = req.params.account_id;
 
@@ -71,7 +76,7 @@ exports.getAccountById = async (req, res) => {
 };
 
 // Update an account
-exports.updateAccount = async (req, res) => {
+exports.updateAccount = async (req, res, next) => {
   try {
     const accountId = req.params.account_id;
 
@@ -91,7 +96,7 @@ exports.updateAccount = async (req, res) => {
 };
 
 // Delete an account (soft delete)
-exports.deleteAccount = async (req, res) => {
+exports.deleteAccount = async (req, res, next) => {
   try {
     const accountId = req.params.account_id;
 
