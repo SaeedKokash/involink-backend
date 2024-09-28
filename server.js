@@ -46,11 +46,11 @@ app.use('/api/auth', authRoutes);
 app.use('/api/users', authMiddleware.authenticate, userRoutes);
 app.use('/api/stores', authMiddleware.authenticate, authMiddleware.authorize('merchant', 'admin'), storeRoutes);
 app.use('/api/items', authMiddleware.authenticate, authMiddleware.authorize('merchant', 'admin'), itemRoutes);
-app.use('/api/invoices', authMiddleware.authenticate, invoiceRoutes);
-app.use('/api/rtps', authMiddleware.authenticate, rtpRoutes);
-app.use('/api/accounts', authMiddleware.authenticate, accountRoutes);
-app.use('/api/contacts', authMiddleware.authenticate, contactRoutes);
-app.use('/api/taxes', authMiddleware.authenticate, taxRoutes);
+app.use('/api/invoices', authMiddleware.authenticate,authMiddleware.authorize('merchant', 'admin'), invoiceRoutes);
+app.use('/api/rtps', authMiddleware.authenticate,authMiddleware.authorize('merchant', 'admin'), rtpRoutes);
+app.use('/api/accounts', authMiddleware.authenticate,authMiddleware.authorize('merchant', 'admin'), accountRoutes);
+app.use('/api/contacts', authMiddleware.authenticate,authMiddleware.authorize('merchant', 'admin'), contactRoutes);
+app.use('/api/taxes', authMiddleware.authenticate,authMiddleware.authorize('merchant', 'admin'), taxRoutes);
 
 app.get("/", (req, res) => {
   res.status(200).send("Welcome To involink API");
