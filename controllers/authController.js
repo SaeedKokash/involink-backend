@@ -126,7 +126,7 @@ exports.refreshToken = async (req, res, next) => {
 
     logger.info(`Access token refreshed for user: ${user.id}`);
 
-    return res.status(200).json({ accessToken: newAccessToken });
+    return res.status(200).json({ accessToken: newAccessToken, user });
   } catch (error) {
     logger.error(`Error refreshing token: ${error.message}`);
     res.status(403).json({ error: 'Invalid refresh token' });
