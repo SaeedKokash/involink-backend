@@ -7,7 +7,7 @@ exports.signAccessToken = (user) => {
   return jwt.sign(
     { id: user.id, email: user.email},
     process.env.JWT_SECRET,
-    { expiresIn: '3h' } // 15-minute expiration for access token
+    { expiresIn: '15m' } // 15-minute expiration for access token
   );
 };
 

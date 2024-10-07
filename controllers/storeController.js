@@ -137,11 +137,21 @@ exports.deleteStore = async (req, res, next) => {
     const storeId = req.params.store_id;
 
     // Find the store by ID
-    const store = await Store.findByPk(storeId);
+    const store = await Store.findByPk(storeId, {
+      include: [
+        {
+          model: User,
+          attributes: ['id', 'name', 'email'],
+          through: { attributes: [] }, // This prevents the UserStore data from being included
+        },
+      ],
+    });
 
     if (!store) {
       return res.status(404).json({ error: 'Store not found' });
     }
+
+    console.log(store.Users[0].id, req.user.id);
 
     if (store.Users[0].id !== req.user.id) {
       return res.status(403).json({ error: 'You are not authorized to delete this store' });

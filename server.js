@@ -24,10 +24,31 @@ const requestLogger = require('./middlewares/requestLogger');
 const limiter = require('./middlewares/rateLimiter');
 
 const helmet = require('helmet');
-// const morgan = require('morgan');
+const morgan = require('morgan');
 const logger = require('./config/logger');
 
-app.use(cors());
+const corsOptions = {
+  origin: 'http://localhost:3000', // Frontend URL
+  credentials: true, // Allow credentials (cookies)
+};
+
+// Handling Multiple Origins (Optional):
+// If you have multiple allowed origins (e.g., for development, staging, production), you can modify the corsOptions to dynamically set the origin:
+
+// const allowedOrigins = ['http://localhost:3000', 'http://your-production-domain.com'];
+
+// const corsOptions = {
+//   origin: function (origin, callback) {
+//     if (allowedOrigins.indexOf(origin) !== -1 || !origin) {
+//       callback(null, true);
+//     } else {
+//       callback(new Error('Not allowed by CORS'));
+//     }
+//   },
+//   credentials: true,
+// };
+
+app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
@@ -36,11 +57,11 @@ app.use(helmet());
 app.use(requestLogger);
 app.use(limiter); // Apply rate limiter to all requests
 
-// app.use(morgan('combined', {
-//   stream: {
-//     write: (message) => logger.info(message.trim()),
-//   },
-// }));
+app.use(morgan('combined', {
+  stream: {
+    write: (message) => logger.info(message.trim()),
+  },
+}));
 
 app.use('/api/auth', authRoutes);
 app.use('/api/users', authMiddleware.authenticate, userRoutes);
