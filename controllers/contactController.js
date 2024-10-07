@@ -1,4 +1,4 @@
-const { Contact, UserStore } = require('../models'); // Assuming your models are in a folder called models
+const { Contact, UserStore, Store } = require('../models'); // Assuming your models are in a folder called models
 
 const logger = require('../config/logger');
 

@@ -16,13 +16,17 @@ exports.createItem = async (req, res, next) => {
       category_id,
       tax_id,
       enabled,
-      store_id,
+      store_id
     } = req.body;
+
+    // const store_id = req.params.store_id;
 
     // Check if user has access to the store
     const userStore = await UserStore.findOne({
       where: { user_id: req.user.id, store_id },
     });
+
+    console.log(userStore);
 
     if (!userStore) {
       next({ statusCode: 403, message: 'You are not authorized to access this resource' });
@@ -52,8 +56,11 @@ exports.createItem = async (req, res, next) => {
       store_id,
     });
 
+    console.log(newItem);
+
     return res.status(201).json(newItem);
   } catch (error) {
+    console.error(error);
     logger.error(`Error creating item: ${error.message}`);
     next(error);
   }
@@ -66,7 +73,7 @@ exports.getItemsByStore = async (req, res, next) => {
 
     // Check if user has access to the store
     const userStore = await UserStore.findOne({
-      where: { user_id: req.user.id, storeId },
+      where: { user_id: req.user.id, store_id: storeId },
     });
 
     if (!userStore) {
