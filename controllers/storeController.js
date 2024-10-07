@@ -15,11 +15,13 @@ exports.createStore = async (req, res, next) => {
     });
 
     // Associate the store with the user (through UserStore)
-    await UserStore.create({
+    const newuserstore = await UserStore.create({
       user_id: userId,
       store_id: newStore.id,
       user_type: 'User',
     });
+
+    console.log(newuserstore)
 
     return res.status(201).json(newStore);
   } catch (error) {
