@@ -50,6 +50,8 @@ exports.createInvoice = async (req, res, next) => {
       request_to_pay,  // RequestToPay data
     } = req.body;
 
+    console.log(req.body.store_id)
+
     // NEWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW CHECK LATER
     // const {
     //   store_id,
@@ -73,16 +75,17 @@ exports.createInvoice = async (req, res, next) => {
       where: { user_id: req.user.id, store_id },
     });
 
+
     if (!userStore) {
       await transaction.rollback();
-      next({ statusCode: 403, message: 'You are not authorized to access this resource' });
+      return next({ statusCode: 403, message: 'You are not authorized to access this resource' });
     }
 
     // Check if the contact exists
     const contact = await Contact.findByPk(contact_id);
     if (!contact) {
       await transaction.rollback();
-      next({ statusCode: 404, message: 'Contact not found' });
+      return next({ statusCode: 404, message: 'Contact not found' });
     }
 
     // Generate invoice number if not provided
@@ -90,7 +93,7 @@ exports.createInvoice = async (req, res, next) => {
       const newInvoiceNumber = await generateInvoiceNumber(store_id);
       if (!newInvoiceNumber) {
         await transaction.rollback();
-        next({ statusCode: 404, message: 'Error in generating invoice number, Store not found' });
+        return next({ statusCode: 404, message: 'Error in generating invoice number, Store not found' });
       }
       invoice_number = newInvoiceNumber;
 
@@ -130,7 +133,10 @@ exports.createInvoice = async (req, res, next) => {
 
     let invoiceTotal = 0;
     for (const itemData of invoice_items) {
-      const item = await Item.findOne({ where: { id: itemData, store_id: store_id } });
+      // console.log("itemData================================================================================================", itemData)
+      const item = await Item.findOne({ where: { id: itemData.item_id, store_id: store_id } });
+
+      // console.log("items================================================================================================", item)
 
       const lineTotal = itemData.quantity * itemData.sale_price;
       const discountAmount = itemData.discount_type === 'percentage'
@@ -254,6 +260,7 @@ exports.createInvoice = async (req, res, next) => {
 
     return res.status(201).json(newInvoice);
   } catch (error) {
+    console.log(error)
     await transaction.rollback();
     logger.error(`Error creating invoice: ${error.message}`);
     next(error);
