@@ -2,6 +2,8 @@ const { Item, UserStore, Store, Tax,
   // Category
 } = require('../models'); // Import necessary models
 const logger = require('../config/logger');
+const { paginate } = require('../utils/pagination');
+const { Op } = require('sequelize');
 
 // Create a new item
 exports.createItem = async (req, res, next) => {
@@ -19,14 +21,10 @@ exports.createItem = async (req, res, next) => {
       store_id
     } = req.body;
 
-    // const store_id = req.params.store_id;
-
     // Check if user has access to the store
     const userStore = await UserStore.findOne({
       where: { user_id: req.user.id, store_id },
     });
-
-    console.log(userStore);
 
     if (!userStore) {
       next({ statusCode: 403, message: 'You are not authorized to access this resource' });
@@ -70,28 +68,23 @@ exports.createItem = async (req, res, next) => {
 exports.getItemsByStore = async (req, res, next) => {
   try {
     const storeId = req.params.store_id;
+    const search = req.query.search;
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
 
-    // Check if user has access to the store
-    const userStore = await UserStore.findOne({
-      where: { user_id: req.user.id, store_id: storeId },
-    });
-
-    if (!userStore) {
-      next({ statusCode: 403, message: 'You are not authorized to access this store' });
-    }
-
-    // Retrieve all items for the store
-    const items = await Item.findAll({
-      where: { store_id: storeId },
-      include: [
-        // { model: Category, attributes: ['name'] },
-        { model: Tax, attributes: ['name', 'rate'] },
+    // You can pass additional filters or sorting options if needed
+    const paginatedItems = await paginate(Item, page, limit, {
+      store_id: storeId,
+      [Op.or]: [
+        { name: { [Op.iLike]: `%${search}%` } },
+        { sku: { [Op.iLike]: `%${search}%` } },
       ],
-    });
+    }, [['createdAt', 'DESC']]);
 
-    return res.status(200).json(items);
+    return res.status(200).json(paginatedItems);
   } catch (error) {
     logger.error(`Error retrieving items: ${error.message}`);
+    console.log(error);
     next(error);
   }
 };

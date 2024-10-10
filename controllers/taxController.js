@@ -1,7 +1,8 @@
 const { Tax, Store, UserStore  
     // InvoiceItemTax, BillItemTax
  } = require('../models'); // Import necessary models'
-
+ const { paginate } = require('../utils/pagination');
+ const { Op } = require('sequelize');
  const logger = require('../config/logger');
 
 // Create a new tax
@@ -38,21 +39,20 @@ exports.createTax = async (req, res, next) => {
 exports.getTaxesByStore = async (req, res, next) => {
   try {
     const storeId = req.params.store_id;
+    const page = parseInt(req.query.page) || 1;
+    const limit = 10; // You can adjust the limit
+    const search = req.query.search || '';
 
-    // Check if the store exists
-    const store = await Store.findByPk(storeId);
-    if (!store) {
-      return res.status(404).json({ error: 'Store not found' });
-    }
+    const where = {
+      store_id: storeId,
+      ...(search && { name: { [Op.iLike]: `%${search}%` } }),
+    };
 
-    // Retrieve all taxes for the store
-    const taxes = await Tax.findAll({
-      where: { store_id: storeId },
-    });
+    const result = await paginate(Tax, page, limit, where);
 
-    return res.status(200).json(taxes);
+    return res.status(200).json(result);
   } catch (error) {
-    console.error(error);
+    console.log(error);
     return res.status(500).json({ error: 'Failed to retrieve taxes' });
   }
 };

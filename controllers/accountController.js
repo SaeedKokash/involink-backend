@@ -1,5 +1,6 @@
 const { Account, Store, UserStore } = require('../models'); // Assuming your models are in a folder called models
 const logger = require('../config/logger');
+const { paginate } = require('../utils/pagination');
 
 // Create a new account
 exports.createAccount = async (req, res, next) => {
@@ -40,17 +41,18 @@ exports.createAccount = async (req, res, next) => {
 exports.getAccountsByStore = async (req, res, next) => {
   try {
     const storeId = req.params.store_id;
+    const page = parseInt(req.query.page) || 1;
+    const limit = 10; // You can adjust the limit
+    const search = req.query.search || '';
 
-    const store = await Store.findByPk(storeId);
-    if (!store) {
-      return res.status(404).json({ error: 'Store not found' });
-    }
+    const where = {
+      store_id: storeId,
+      ...(search && { name: { [Op.iLike]: `%${search}%` } }),
+    };
 
-    const accounts = await Account.findAll({
-      where: { store_id: storeId }
-    });
+    const result = await paginate(Account, page, limit, where, [['createdAt', 'DESC']]);
 
-    return res.status(200).json(accounts);
+    return res.status(200).json(result);
   } catch (error) {
     logger.error(`Error retrieving accounts: ${error.message}`);
     next(error);
@@ -90,7 +92,7 @@ exports.updateAccount = async (req, res, next) => {
 
     return res.status(200).json(updatedAccount);
   } catch (error) {
-    console.error(error);
+    console.log(error);
     return res.status(500).json({ error: 'Failed to update account' });
   }
 };
