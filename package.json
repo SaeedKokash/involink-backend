@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "set NODE_ENV=production&&nodemon index.js",
+    "start": "NODE_ENV=production node index.js",
+    "heroku": "set NODE_ENV=production&&nodemon index.js",
     "dev": "NODE_ENV=development nodemon index.js",
     "test": "NODE_ENV=test mocha",
     "migrate": "npx sequelize-cli db:migrate",
