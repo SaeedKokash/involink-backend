@@ -1,6 +1,7 @@
 const { Contact, UserStore, Store } = require('../models'); // Assuming your models are in a folder called models
 
 const logger = require('../config/logger');
+const { paginate } = require('../utils/pagination');
 
 // Create a new contact
 exports.createContact = async (req, res, next) => {
@@ -57,6 +58,7 @@ exports.createContact = async (req, res, next) => {
 
     return res.status(201).json(newContact);
   } catch (error) {
+    console.log(error);
     logger.error(`Error creating contact: ${error.message}`);
     next(error);
   }
@@ -66,19 +68,18 @@ exports.createContact = async (req, res, next) => {
 exports.getContactsByStore = async (req, res, next) => {
   try {
     const storeId = req.params.store_id;
+    const page = parseInt(req.query.page) || 1;
+    const limit = 10; // You can adjust the limit
+    const search = req.query.search || '';
 
-    // Check if the store exists
-    const store = await Store.findByPk(storeId);
-    if (!store) {
-      return res.status(404).json({ error: 'Store not found' });
-    }
+    const where = {
+      store_id: storeId,
+      ...(search && { name: { [Op.iLike]: `%${search}%` } }),
+    };
 
-    // Retrieve all contacts for the store
-    const contacts = await Contact.findAll({
-      where: { store_id: storeId },
-    });
+    const paginatedContacts = await paginate(Contact, page, limit, where, [['createdAt', 'DESC']]);
 
-    return res.status(200).json(contacts);
+    return res.status(200).json(paginatedContacts);
   } catch (error) {
     console.error(error);
     return res.status(500).json({ error: 'Failed to retrieve contacts' });
@@ -112,6 +113,7 @@ exports.getContactById = async (req, res, next) => {
 // Update a contact
 exports.updateContact = async (req, res, next) => {
   try {
+    console.log("updateContact");
     const contactId = req.params.contact_id;
 
     // Find the contact by ID
@@ -121,12 +123,14 @@ exports.updateContact = async (req, res, next) => {
       return res.status(404).json({ error: 'Contact not found' });
     }
 
+    console.log(contact);
+
     // Update the contact
     const updatedContact = await contact.update(req.body);
 
     return res.status(200).json(updatedContact);
   } catch (error) {
-    console.error(error);
+    console.log(error);
     return res.status(500).json({ error: 'Failed to update contact' });
   }
 };

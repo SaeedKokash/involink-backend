@@ -2,12 +2,16 @@ const express = require('express');
 const router = express.Router();
 const itemController = require('../controllers/itemController');
 
-// CRUD operations for Items
-router.post('/', itemController.createItem);
-router.get('/:item_id', itemController.getItemById);
-router.put('/:item_id', itemController.updateItem);
-router.delete('/:item_id', itemController.deleteItem);
+const { validateItem } = require('../validators/itemValidator');
+const { authorizeStoreAccess, authorizeItemAccess } = require('../middlewares/authorization');
 
-router.get('/store/:store_id', itemController.getItemsByStore);
+
+// CRUD operations for Items
+router.post('/', authorizeStoreAccess, validateItem, itemController.createItem);
+router.get('/:item_id', authorizeItemAccess, itemController.getItemById);
+router.put('/:item_id', authorizeItemAccess,validateItem, itemController.updateItem);
+router.delete('/:item_id', authorizeItemAccess, itemController.deleteItem);
+
+router.get('/store/:store_id',authorizeStoreAccess, itemController.getItemsByStore);
 
 module.exports = router;
