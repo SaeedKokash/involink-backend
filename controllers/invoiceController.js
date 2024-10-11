@@ -1,9 +1,15 @@
 const fs = require('fs');
 const logger = require('../config/logger');
 
-const { sequelize, Invoice, Store, Contact, InvoiceItem, RequestToPay, Item, Tax, UserStore, InvoiceHistory, Media } = require('../models');
-const { generateInvoiceNumber, generateInvoicePDF } = require('../services/invoiceServices');
+const { sequelize, Invoice, Store, Contact, InvoiceItem, RequestToPay, Item, Tax, UserStore, InvoiceHistory, Media, Mediable  } = require('../models');
+const { generateInvoiceNumber, generateInvoicePDFHelper } = require('../services/invoiceServices');
 const { sendInvoiceEmail } = require('../services/emailService');
+const { Op } = require('sequelize');
+const { paginate } = require('../utils/pagination');
+
+const PDFDocument = require('pdfkit');
+
+const path = require('path');
 
 // this should become a user-store middleware
 function authorizeInvoiceCreation(req, res, next) {
@@ -222,25 +228,41 @@ exports.createInvoice = async (req, res, next) => {
 
       // Generate PDF and save in media table
       try {
-        const pdfPath = await generateInvoicePDF(newInvoice.id);
-      
+        const pdfPath = await generateInvoicePDFHelper(newInvoice.id);
+
+          // Ensure the file exists before accessing it
+            if (!fs.existsSync(pdfPath)) {
+              throw new Error(`PDF file not found at path: ${pdfPath}`);
+            }
+                
         // Save PDF details in media table
         const media = await Media.create({
           disk: 'local',
           directory: 'invoices',
-          filename: `invoice_${newInvoice.invoice_number}`,
+          filename: `invoice_${newInvoice.invoice_number}.pdf`,
           extension: 'pdf',
           mime_type: 'application/pdf',
           aggregate_type: 'document',
           size: fs.statSync(pdfPath).size,
+          path: pdfPath, // Add the path field
         });
+
+        console.log('Media created:', media);
       
         // Associate media with invoice
-        await newInvoice.addMedia(media, { through: { tag: 'invoice_pdf' } });
+        // await newInvoice.addMedia(media, { through: { tag: 'invoice_pdf' } });
+        await Mediable.create({
+          media_id: media.id,
+          mediable_type: 'Invoice',
+          mediable_id: newInvoice.id,
+          tag: 'invoice_pdf',
+        });
   
         // Move the PDF to the media directory
-        fs.renameSync(pdfPath, `media/${media.id}`);
+        // No need to move the PDF file since it's already in the correct location
+        // fs.renameSync(pdfPath, `media/${media.id}`);
       } catch (error) {
+        console.log(error)
         logger.error(`Error generating invoice PDF: ${error.message}`);
 
       }
@@ -270,26 +292,63 @@ exports.createInvoice = async (req, res, next) => {
   // Get all invoices for a store
   exports.getInvoicesByStore = async (req, res, next) => {
     try {
-      const storeId = req.params.store_id;
+        const storeId = req.params.store_id;
+        const page = parseInt(req.query.page, 10) || 1;
+        const limit = parseInt(req.query.limit, 10) || 10; // Optional: Allow dynamic limit
+        const search = req.query.search || '';
+        const status = req.query.status || '';
 
-      // Check if the store exists
-      const store = await Store.findByPk(storeId);
-      if (!store) {
-        return res.status(404).json({ error: 'Store not found' });
-      }
+        // Construct the WHERE clause with dynamic filters
+        const where = {
+            store_id: storeId,
+            ...(search && {
+                [Op.or]: [
+                    { invoice_number: { [Op.iLike]: `%${search}%` } },
+                    { contact_name: { [Op.iLike]: `%${search}%` } },
+                ],
+            }),
+            ...(status && { status }),
+        };
 
-      // Retrieve all invoices for the store
-      const invoices = await Invoice.findAll({
-        where: { store_id: storeId },
-        include: [{ model: Contact, attributes: ['name', 'email'] }],
-      });
+        // Define additional Sequelize options
+        const options = {
+            include: [
+                {
+                    model: Contact,
+                },
+                {
+                    model: InvoiceItem,
+                    include: [
+                        {
+                            model: Item,
+                            include: [
+                                {
+                                    model: Tax,
+                                },
+                            ],
+                        },
+                    ],
+                }
+            ],
+            // You can add more options like distinct if needed
+            // distinct: true,
+        };
 
-      return res.status(200).json(invoices);
+        // Call the enhanced paginate function
+        const result = await paginate({
+            model: Invoice,
+            page,
+            limit,
+            where,
+            options,
+        });
+
+        return res.status(200).json(result);
     } catch (error) {
-      console.error(error);
-      return res.status(500).json({ error: 'Failed to retrieve invoices' });
+        logger.error(`Error retrieving invoices: ${error.message}`);
+        next(error);
     }
-  };
+};
 
   // Get a single invoice by ID, optionally include items, taxes, request-to-pay, and history
   exports.getInvoiceById = async (req, res, next) => {
@@ -298,19 +357,41 @@ exports.createInvoice = async (req, res, next) => {
       const includeItems = req.query.includeItems === 'true'; // Optional query param
 
       // Fetch the invoice, optionally including associated items, taxes, request-to-pay, and history
+      // const invoice = await Invoice.findByPk(invoiceId, {
+      //   include: [
+      //     { model: Contact },
+      //     ...(includeItems
+      //       ? [
+      //         {
+      //           model: InvoiceItem,
+      //           // include: [{ model: InvoiceItemTax }],
+      //         },
+      //         { model: RequestToPay },
+      //         // { model: InvoiceHistory },
+      //       ]
+      //       : [])
+      //   ],
+      // });
+
       const invoice = await Invoice.findByPk(invoiceId, {
         include: [
-          { model: Contact, attributes: ['name', 'email'] },
-          ...(includeItems
-            ? [
+          {
+            model: Contact,
+            attributes: ['id', 'name', 'email', 'phone', 'address'],
+          },
+          {
+            model: InvoiceItem,
+            include: [
               {
-                model: InvoiceItem,
-                // include: [{ model: InvoiceItemTax }],
+                  model: Item,
+                  include: [
+                      {
+                          model: Tax,
+                      },
+                  ],
               },
-              { model: RequestToPay },
-              // { model: InvoiceHistory },
-            ]
-            : [])
+          ],
+          },
         ],
       });
 
@@ -366,5 +447,211 @@ exports.createInvoice = async (req, res, next) => {
     } catch (error) {
       console.error(error);
       return res.status(500).json({ error: 'Failed to delete invoice' });
+    }
+  };
+
+
+  // NEWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW
+
+  exports.generateInvoicePDF = async (req, res, next) => {
+    try {
+      const { store_id, invoice_id } = req.params;
+  
+      // Fetch the invoice data
+      const invoice = await Invoice.findOne({
+        where: { id: invoice_id, store_id },
+        include: [
+          { model: InvoiceItem },
+          { model: Contact, as: 'Contact' },
+        ],
+      });
+  
+      if (!invoice) {
+        return res.status(404).json({ error: 'Invoice not found' });
+      }
+  
+      // Check if the user has access to this store
+      const userStore = await UserStore.findOne({
+        where: { user_id: req.user.id, store_id },
+      });
+  
+      if (!userStore) {
+        return res.status(403).json({ error: 'Unauthorized access' });
+      }
+  
+      // Create a PDF document
+      const doc = new PDFDocument({ margin: 50 });
+  
+      // Set the response headers
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader(
+        'Content-Disposition',
+        `inline; filename=invoice_${invoice.invoice_number}.pdf`
+      );
+  
+      // Pipe the PDF into the response
+      doc.pipe(res);
+  
+      // Generate the PDF content
+      const invoicePDF = await generatePDFContent(doc, invoice);
+  
+      res.send(invoicePDF);
+
+      // Finalize the PDF and end the stream
+      doc.end();
+
+  
+
+
+    } catch (error) {
+      console.error(error);
+      next(error);
+    }
+  };
+  
+  // Function to generate the PDF content
+  async function generatePDFContent(doc, invoice) {
+    // Header
+    doc
+      .fontSize(20)
+      .text('Invoice', { align: 'center' })
+      .moveDown();
+  
+    // Invoice Details
+    doc
+      .fontSize(12)
+      .text(`Invoice Number: ${invoice.invoice_number}`)
+      .text(`Invoice Date: ${invoice.invoiced_at.toDateString()}`)
+      .text(`Due Date: ${invoice.due_at.toDateString()}`)
+      .moveDown();
+  
+    // Contact Details
+    doc
+      .fontSize(12)
+      .text(`Bill To: ${invoice.contact_name}`)
+      .text(`Email: ${invoice.contact_email}`)
+      .text(`Phone: ${invoice.contact_phone}`)
+      .moveDown();
+  
+    // Invoice Items Table
+    doc.text('Items:', { underline: true });
+    const tableTop = doc.y + 20;
+  
+    generateTable(doc, invoice.InvoiceItems, tableTop);
+  
+    // Total Amount
+    doc
+      .fontSize(12)
+      .text(`Total Amount: ${invoice.amount} ${invoice.currency_code}`, {
+        align: 'right',
+      })
+      .moveDown();
+  
+    // Notes and Footer
+    if (invoice.notes) {
+      doc.text(`Notes: ${invoice.notes}`).moveDown();
+    }
+  
+    if (invoice.footer) {
+      doc.text(invoice.footer, { align: 'center' }).moveDown();
+    }
+  }
+  
+  // Helper function to generate a table of items
+  function generateTable(doc, items, y) {
+    const itemX = 50;
+    const quantityX = 300;
+    const priceX = 350;
+    const amountX = 450;
+  
+    // Table Header
+    doc
+      .fontSize(10)
+      .text('Item', itemX, y, { bold: true })
+      .text('Quantity', quantityX, y)
+      .text('Price', priceX, y)
+      .text('Amount', amountX, y);
+  
+    let position = y + 20;
+  
+    items.forEach((item) => {
+      const amount = item.quantity * item.price;
+  
+      doc
+        .fontSize(10)
+        .text(item.name, itemX, position)
+        .text(item.quantity, quantityX, position)
+        .text(item.price.toFixed(2), priceX, position)
+        .text(amount.toFixed(2), amountX, position);
+  
+      position += 20;
+    });
+  }
+
+  exports.getInvoicePDF = async (req, res, next) => {
+    try {
+      console.log("getInvoicePDF")
+      const { store_id, invoice_id } = req.params;
+  
+      // Check if the user has access to this store
+      const userStore = await UserStore.findOne({
+        where: { user_id: req.user.id, store_id },
+      });
+  
+      if (!userStore) {
+        return res.status(403).json({ error: 'Unauthorized access' });
+      }
+  
+      // Fetch the invoice
+      const invoice = await Invoice.findOne({
+        where: { id: invoice_id, store_id },
+      });
+  
+      if (!invoice) {
+        return res.status(404).json({ error: 'Invoice not found' });
+      }
+  
+      // Fetch the associated media
+      const media = await invoice.getMedia({
+        through: {
+          where: {
+            mediable_type: 'Invoice',
+            tag: 'invoice_pdf',
+          },
+        },
+      });
+
+      console.log(media)
+  
+      if (!media || media.length === 0) {
+        return res.status(404).json({ error: 'Invoice PDF not found' });
+      }
+  
+      const pdfMedia = media[0]; // Assuming only one PDF per invoice
+  
+      const filePath = pdfMedia.path;
+  
+      // Check if the file exists
+      if (!fs.existsSync(filePath)) {
+        return res.status(404).json({ error: 'PDF file not found' });
+      }
+  
+      // Set headers
+      res.setHeader('Content-Type', pdfMedia.mime_type);
+      res.setHeader('Content-Disposition', `inline; filename=${pdfMedia.filename}`);
+  
+      // Stream the PDF file
+      const fileStream = fs.createReadStream(filePath);
+
+      // Handle stream errors
+      fileStream.on('error', (streamErr) => {
+          console.error('Stream Error:', streamErr);
+          return res.status(500).json({ error: 'Error reading PDF file' });
+      });
+
+      fileStream.pipe(res);
+    } catch (error) {
+      console.error(error);
+      next(error);
     }
   };

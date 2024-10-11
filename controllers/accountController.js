@@ -50,7 +50,12 @@ exports.getAccountsByStore = async (req, res, next) => {
       ...(search && { name: { [Op.iLike]: `%${search}%` } }),
     };
 
-    const result = await paginate(Account, page, limit, where, [['createdAt', 'DESC']]);
+    const result = await paginate({
+      model: Account, 
+      page, 
+      limit, 
+      where, order: [['createdAt', 'DESC']]
+  });
 
     return res.status(200).json(result);
   } catch (error) {

@@ -9,6 +9,7 @@ module.exports = (sequelize, DataTypes) => {
       mime_type: DataTypes.STRING,
       aggregate_type: DataTypes.STRING,
       size: DataTypes.INTEGER,
+      path: DataTypes.STRING, // Add this line
     }, {
       tableName: 'media',
       timestamps: true,
@@ -18,17 +19,11 @@ module.exports = (sequelize, DataTypes) => {
   
     Media.associate = (models) => {
       Media.belongsToMany(models.Invoice, {
-        through: {
-          model: models.Mediable,
-          unique: false,
-          scope: {
-            mediable_type: 'Invoice',
-          },
-        },
-        foreignKey: 'media_id',
+        through: models.Mediable,
+        foreignKey: 'media_id',    // The foreign key in 'Mediable' pointing to 'Media'
+        otherKey: 'mediable_id',   // The foreign key in 'Mediable' pointing to 'Invoice'
         constraints: false,
       });
-      // Add associations with other models if needed
     };
   
     return Media;

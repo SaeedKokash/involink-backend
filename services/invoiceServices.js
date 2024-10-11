@@ -5,7 +5,7 @@ const fs = require('fs');
 const path = require('path');
 const { Invoice, InvoiceItem, Contact, Store } = require('../models');
 
-exports.generateInvoicePDF = async (invoiceId) => {
+exports.generateInvoicePDFHelper = async (invoiceId) => {
   // Fetch invoice data
   const invoice = await Invoice.findByPk(invoiceId, {
     include: [
@@ -21,32 +21,45 @@ exports.generateInvoicePDF = async (invoiceId) => {
   const doc = new PDFDocument();
 
   const fileName = `invoice_${invoice.invoice_number}.pdf`;
-  const filePath = path.join(__dirname, '..', 'invoices', fileName);
+  const filePath = path.join(__dirname, '..', 'media', 'invoices', fileName);
 
   // Ensure the invoices directory exists
   fs.mkdirSync(path.dirname(filePath), { recursive: true });
 
-  doc.pipe(fs.createWriteStream(filePath));
-
-  // Add content to the PDF (simplified example)
-  doc.fontSize(20).text(`Invoice: ${invoice.invoice_number}`, { align: 'center' });
-  doc.moveDown();
-  doc.fontSize(12).text(`Date: ${invoice.invoiced_at}`);
-  doc.text(`Due Date: ${invoice.due_at}`);
-  doc.text(`Bill To: ${invoice.Contact.name}`);
-  doc.moveDown();
-
-  // Add table of items
-  invoice.InvoiceItems.forEach((item) => {
-    doc.text(`${item.name} - ${item.quantity} x ${item.price} = ${item.total}`);
-  });
-
-  doc.moveDown();
-  doc.text(`Total Amount: ${invoice.amount}`);
-
-  doc.end();
-
-  return filePath;
+   // **Define the writeStream before using it**
+   const writeStream = fs.createWriteStream(filePath);
+   doc.pipe(writeStream);
+ 
+   // Add content to the PDF (simplified example)
+   doc.fontSize(20).text(`Invoice: ${invoice.invoice_number}`, { align: 'center' });
+   doc.moveDown();
+   doc.fontSize(12).text(`Date: ${new Date(invoice.invoiced_at).toLocaleDateString()}`);
+   doc.text(`Due Date: ${new Date(invoice.due_at).toLocaleDateString()}`);
+   doc.text(`Bill To: ${invoice.Contact.name}`);
+   doc.moveDown();
+ 
+   // Add table of items
+   invoice.InvoiceItems.forEach((item) => {
+     doc.text(`${item.name} - ${item.quantity} x ${item.price} = ${item.total}`);
+   });
+ 
+   doc.moveDown();
+   doc.text(`Total Amount: ${invoice.amount}`);
+ 
+   doc.end();
+ 
+   // **Listen to 'finish' and 'error' events on the writeStream**
+   return new Promise((resolve, reject) => {
+     writeStream.on('finish', () => {
+       console.log(`PDF generated at ${filePath}`);
+       resolve(filePath);
+     });
+ 
+     writeStream.on('error', (err) => {
+       console.error('Error generating PDF:', err);
+       reject(err);
+     });
+   });
 };
 
 exports.generateInvoiceNumber = async (storeId) => {

@@ -48,7 +48,13 @@ exports.getTaxesByStore = async (req, res, next) => {
       ...(search && { name: { [Op.iLike]: `%${search}%` } }),
     };
 
-    const result = await paginate(Tax, page, limit, where);
+    const result = await paginate({
+      model: Tax, 
+      page, 
+      limit, 
+      where,
+      order: [['createdAt', 'DESC']] 
+  });
 
     return res.status(200).json(result);
   } catch (error) {

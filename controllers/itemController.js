@@ -73,13 +73,20 @@ exports.getItemsByStore = async (req, res, next) => {
     const limit = parseInt(req.query.limit) || 10;
 
     // You can pass additional filters or sorting options if needed
-    const paginatedItems = await paginate(Item, page, limit, {
+    const paginatedItems = await paginate({ 
+      model: Item, 
+      page, 
+      limit, 
+      where: {
       store_id: storeId,
       [Op.or]: [
         { name: { [Op.iLike]: `%${search}%` } },
         { sku: { [Op.iLike]: `%${search}%` } },
       ],
-    }, [['createdAt', 'DESC']]);
+    }
+    , 
+    order: [['createdAt', 'DESC']]
+  });
 
     return res.status(200).json(paginatedItems);
   } catch (error) {
