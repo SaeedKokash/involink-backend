@@ -2,7 +2,7 @@
 
 module.exports = (sequelize, DataTypes) => {
   const RequestToPay = sequelize.define('RequestToPay', {
-    rtp_id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+    id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
     invoice_id: DataTypes.INTEGER,
     session_id: DataTypes.INTEGER,
     msgId: DataTypes.INTEGER,
@@ -13,8 +13,7 @@ module.exports = (sequelize, DataTypes) => {
     extraData: DataTypes.JSON,
     // Add a status field
     status: {
-      type: DataTypes.ENUM,
-      values: ['pending', 'approved', 'rejected', 'completed'],
+      type: DataTypes.ENUM('pending', 'approved', 'rejected', 'completed'),
       defaultValue: 'pending',
     },
   }, {

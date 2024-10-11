@@ -1,5 +1,5 @@
 // middleware/authorization.js
-const { UserStore, Item, Contact, Account, Tax } = require('../models');
+const { UserStore, Item, Contact, Account, Tax, Invoice } = require('../models');
 
 exports.authorizeStoreAccess = async (req, res, next) => {
   const userId = req.user.id;
@@ -100,6 +100,25 @@ exports.authorizeTaxAccess = async (req, res, next) => {
 
   if (!userStore) {
     return res.status(403).json({ error: 'You are not authorized to access this tax' });
+  }
+  next();
+};
+
+exports.authorizeInvoiceAccess = async (req, res, next) => {
+  const userId = req.user.id;
+  const invoiceId = req.params.invoice_id;
+
+  const invoice = await Invoice.findByPk(invoiceId);
+  if (!invoice) {
+    return res.status(404).json({ error: 'Invoice not found' });
+  }
+
+  const userStore = await UserStore.findOne({
+    where: { user_id: userId, store_id: invoice.store_id },
+  });
+
+  if (!userStore) {
+    return res.status(403).json({ error: 'You are not authorized to access this invoice' });
   }
   next();
 };

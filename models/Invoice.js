@@ -43,9 +43,9 @@ module.exports = (sequelize, DataTypes) => {
     Invoice.hasOne(models.RequestToPay, { foreignKey: 'invoice_id' });
     Invoice.belongsToMany(models.Media, {
       through: models.Mediable,
-      foreignKey: 'mediable_id',
+      foreignKey: 'mediable_id', // The foreign key in 'Mediable' pointing to 'Invoice'
+      otherKey: 'media_id',      // The foreign key in 'Mediable' pointing to 'Media'
       constraints: false,
-      scope: { mediable_type: 'Invoice' },
     });
   };
 

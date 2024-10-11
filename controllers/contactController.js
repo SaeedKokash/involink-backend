@@ -77,7 +77,12 @@ exports.getContactsByStore = async (req, res, next) => {
       ...(search && { name: { [Op.iLike]: `%${search}%` } }),
     };
 
-    const paginatedContacts = await paginate(Contact, page, limit, where, [['createdAt', 'DESC']]);
+    const paginatedContacts = await paginate({
+      model: Contact, 
+      page, 
+      limit, 
+      where, 
+      order: [['createdAt', 'DESC']]});
 
     return res.status(200).json(paginatedContacts);
   } catch (error) {
