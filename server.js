@@ -27,26 +27,26 @@ const helmet = require('helmet');
 const morgan = require('morgan');
 const logger = require('./config/logger');
 
-const corsOptions = {
-  origin: 'http://localhost:3000', // Frontend URL
-  credentials: true, // Allow credentials (cookies)
-};
+// const corsOptions = {
+//   origin: 'http://localhost:3000', // Frontend URL
+//   credentials: true, // Allow credentials (cookies)
+// };
 
 // Handling Multiple Origins (Optional):
 // If you have multiple allowed origins (e.g., for development, staging, production), you can modify the corsOptions to dynamically set the origin:
 
-// const allowedOrigins = ['http://localhost:3000', 'http://your-production-domain.com'];
+const allowedOrigins = ['http://localhost:3000', 'https://involink.netlify.app'];
 
-// const corsOptions = {
-//   origin: function (origin, callback) {
-//     if (allowedOrigins.indexOf(origin) !== -1 || !origin) {
-//       callback(null, true);
-//     } else {
-//       callback(new Error('Not allowed by CORS'));
-//     }
-//   },
-//   credentials: true,
-// };
+const corsOptions = {
+  origin: function (origin, callback) {
+    if (allowedOrigins.indexOf(origin) !== -1 || !origin) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true,
+};
 
 app.use(cors(corsOptions));
 app.use(express.json());
