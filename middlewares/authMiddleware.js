@@ -1,6 +1,6 @@
 const logger = require('../config/logger');
 const { verifyToken } = require('../utils/tokenUtils');
-const { User, Role } = require('../models');
+const { User, Role, UserStore } = require('../models');
 
 // Middleware to authenticate user
 exports.authenticate = async (req, res, next) => {
@@ -26,6 +26,16 @@ exports.authenticate = async (req, res, next) => {
     });
     if (!user) return next({ statusCode: 401, message: 'User not found!' });
     req.user = user;
+
+    // Fetch associated stores
+    const userStores = await UserStore.findAll({
+      where: { user_id: req.user.id },
+      // include: [{ model: Store }],
+    });
+
+    // const stores = userStores.map(userStore => console.log(userStore.store_id));
+
+    req.user.stores = userStores.map(us => us.store_id);
 
     logger.info(`User ${decoded.id} authenticated successfully`);
     next();

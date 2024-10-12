@@ -5,6 +5,10 @@ const { validateInvoice } = require('../validators/invoiceValidator');
 const { authorizeStoreAccess, authorizeInvoiceAccess } = require('../middlewares/authorization');
 
 // CRUD operations for Invoices
+
+router.get('/summary', invoiceController.getInvoiceSummary);
+router.get('/recent', invoiceController.getRecentInvoices);
+
 router.post('/', authorizeStoreAccess, validateInvoice, invoiceController.createInvoice);
 router.get('/:invoice_id', authorizeInvoiceAccess, invoiceController.getInvoiceById);
 router.put('/:invoice_id', authorizeInvoiceAccess, validateInvoice, invoiceController.updateInvoice);
@@ -14,6 +18,7 @@ router.get('/store/:store_id', authorizeStoreAccess, invoiceController.getInvoic
 
 // PDF generation route
 router.get('/store/:store_id/invoices/:invoice_id/pdf', invoiceController.getInvoicePDF);
+
 
 
 module.exports = router;
