@@ -35,6 +35,10 @@ exports.getStoresByUser = async (req, res, next) => {
   try {
     const userId = req.user.id;
 
+    const storeIds = req.user.stores // Assuming req.user.stores contains associated store IDs
+
+    console.log(storeIds)
+
     // Retrieve all stores associated with the user
     const stores = await Store.findAll({
       include: [

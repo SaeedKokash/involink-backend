@@ -407,27 +407,224 @@ exports.createInvoice = async (req, res, next) => {
   };
 
   // Update an invoice
-  exports.updateInvoice = async (req, res, next) => {
-    try {
-      const invoiceId = req.params.invoice_id;
+exports.updateInvoice = async (req, res, next) => {
+  const transaction = await sequelize.transaction();
+  try {
+    const invoiceId = req.params.invoice_id;
 
-      // Find the invoice by ID
-      const invoice = await Invoice.findByPk(invoiceId);
+    // Find the invoice by ID with existing items and taxes
+    const invoice = await Invoice.findByPk(invoiceId, {
+      include: [
+        {
+          model: InvoiceItem,
+          as: 'InvoiceItems',
+          // include: [
+          //   {
+          //     model: InvoiceItemTax,
+          //     as: 'InvoiceItemTaxes',
+          //   },
+          // ],
+        },
+      ],
+      transaction,
+    });
 
-      if (!invoice) {
-        return res.status(404).json({ error: 'Invoice not found' });
+    if (!invoice) {
+      await transaction.rollback();
+      return res.status(404).json({ error: 'Invoice not found' });
+    }
+
+    // Update the invoice fields
+    await invoice.update(req.body, { transaction });
+
+    // Initialize invoice total
+    let invoiceTotal = 0;
+
+    // Handle invoice items
+    if (req.body.invoice_items) {
+      const invoiceItemsData = req.body.invoice_items;
+
+      // Existing invoice item IDs
+      const existingItemIds = invoice.InvoiceItems.map((item) => item.id);
+
+      // Incoming invoice item IDs
+      const incomingItemIds = invoiceItemsData
+        .filter((item) => item.id)
+        .map((item) => item.id);
+
+      // Determine which items to delete
+      const itemsToDelete = existingItemIds.filter(
+        (id) => !incomingItemIds.includes(id)
+      );
+
+      // Delete removed invoice items and their taxes
+      if (itemsToDelete.length > 0) {
+        // await InvoiceItemTax.destroy({
+        //   where: { invoice_item_id: itemsToDelete },
+        //   transaction,
+        // });
+
+        await InvoiceItem.destroy({
+          where: { id: itemsToDelete },
+          transaction,
+        });
       }
 
-      // Update the invoice
-      const updatedInvoice = await invoice.update(req.body);
+      // Process each invoice item
+      for (const itemData of invoiceItemsData) {
+        // Validate item existence
+        const item = await Item.findOne({
+          where: { id: itemData.item_id, store_id: invoice.store_id },
+          transaction,
+        });
 
-      return res.status(200).json(updatedInvoice);
-    } catch (error) {
-      console.error(error);
-      return res.status(500).json({ error: 'Failed to update invoice' });
+        if (!item) {
+          await transaction.rollback();
+          return res.status(400).json({ error: `Item with ID ${itemData.item_id} not found` });
+        }
+
+        // Calculate totals
+        const lineTotal = itemData.quantity * itemData.price;
+        const discountAmount =
+          itemData.discount_type === 'percentage'
+            ? (lineTotal * itemData.discount_rate) / 100
+            : itemData.discount_rate;
+        const taxableAmount = lineTotal - discountAmount;
+
+        // Calculate taxes
+        let taxAmount = 0;
+        let invoiceItemTaxes = [];
+
+        if (itemData.taxes && itemData.taxes.length > 0) {
+          for (const taxId of itemData.taxes) {
+            const tax = await Tax.findOne({
+              where: { id: taxId, store_id: invoice.store_id },
+              transaction,
+            });
+
+            if (!tax) {
+              await transaction.rollback();
+              return res.status(400).json({ error: `Tax with ID ${taxId} not found` });
+            }
+
+            const taxLineAmount = (taxableAmount * tax.rate) / 100;
+            taxAmount += taxLineAmount;
+
+            invoiceItemTaxes.push({
+              store_id: invoice.store_id,
+              invoice_id: invoice.id,
+              tax_id: tax.id,
+              name: tax.name,
+              amount: taxLineAmount,
+              created_at: new Date(),
+              updated_at: new Date(),
+            });
+          }
+        }
+
+        const totalAmount = taxableAmount + taxAmount;
+        invoiceTotal += totalAmount;
+
+        let invoiceItem;
+
+        if (itemData.id) {
+          // Update existing invoice item
+          invoiceItem = await InvoiceItem.findOne({
+            where: { id: itemData.id },
+            transaction,
+          });
+
+          if (invoiceItem) {
+            await invoiceItem.update(
+              {
+                store_id: invoice.store_id,
+                invoice_id: invoice.id,
+                item_id: item.id,
+                name: item.name,
+                sku: item.sku,
+                quantity: itemData.quantity,
+                price: itemData.price,
+                total: totalAmount,
+                tax: taxAmount,
+                discount_rate: itemData.discount_rate,
+                discount_type: itemData.discount_type,
+              },
+              { transaction }
+            );
+
+            // Delete existing taxes for this invoice item
+            // await InvoiceItemTax.destroy({
+            //   where: { invoice_item_id: invoiceItem.id },
+            //   transaction,
+            // });
+          } else {
+            await transaction.rollback();
+            return res.status(400).json({ error: `Invoice item with ID ${itemData.id} not found` });
+          }
+        } else {
+          // Create new invoice item
+          invoiceItem = await InvoiceItem.create(
+            {
+              store_id: invoice.store_id,
+              invoice_id: invoice.id,
+              item_id: item.id,
+              name: item.name,
+              sku: item.sku,
+              quantity: itemData.quantity,
+              price: itemData.price,
+              total: totalAmount,
+              tax: taxAmount,
+              discount_rate: itemData.discount_rate,
+              discount_type: itemData.discount_type,
+              created_at: new Date(),
+              updated_at: new Date(),
+            },
+            { transaction }
+          );
+        }
+
+        // Create invoice item taxes
+        // for (const taxData of invoiceItemTaxes) {
+        //   await InvoiceItemTax.create(
+        //     {
+        //       ...taxData,
+        //       invoice_item_id: invoiceItem.id,
+        //     },
+        //     { transaction }
+        //   );
+        // }
+      }
+
+      // Update invoice total amount
+      await invoice.update({ amount: invoiceTotal }, { transaction });
     }
-  };
 
+    // Commit the transaction
+    await transaction.commit();
+
+    // Reload the invoice with updated data
+    const updatedInvoice = await Invoice.findByPk(invoiceId, {
+      include: [
+        {
+          model: InvoiceItem,
+          as: 'InvoiceItems',
+          // include: [
+          //   {
+          //     model: InvoiceItemTax,
+          //     as: 'InvoiceItemTaxes',
+          //   },
+          // ],
+        },
+      ],
+    });
+
+    return res.status(200).json(updatedInvoice);
+  } catch (error) {
+    console.error(error);
+    await transaction.rollback();
+    return res.status(500).json({ error: 'Failed to update invoice' });
+  }
+};
   // Delete an invoice (soft delete)
   exports.deleteInvoice = async (req, res, next) => {
     try {
@@ -655,3 +852,64 @@ exports.createInvoice = async (req, res, next) => {
       next(error);
     }
   };
+
+  // Get Invoice Summary across all stores
+exports.getInvoiceSummary = async (req, res, next) => {
+  try {
+    const storeIds = req.user.stores // Assuming req.user.stores contains associated store IDs
+
+    // Total Invoices
+    const totalInvoices = await Invoice.count({
+      where: { store_id: { [Op.in]: storeIds } },
+    });
+
+    // Total Revenue
+    const totalRevenueResult = await Invoice.findAll({
+      where: { store_id: { [Op.in]: storeIds }, status: { [Op.ne]: 'draft' } }, // Exclude draft invoices if needed
+      attributes: [[sequelize.fn('SUM', sequelize.col('amount')), 'totalRevenue']],
+      raw: true,
+    });
+    const totalRevenue = parseFloat(totalRevenueResult[0].totalRevenue) || 0;
+
+    // Total Unique Customers
+    const uniqueCustomers = await Contact.count({
+      where: {
+        id: {
+          [Op.in]: sequelize.literal(`(SELECT DISTINCT contact_id FROM Invoices WHERE store_id IN (${storeIds.join(',')}))`),
+        },
+      },
+    });
+
+    return res.status(200).json({
+      totalInvoices,
+      totalRevenue,
+      totalCustomers: uniqueCustomers,
+    });
+  } catch (error) {
+    logger.error(`Error fetching invoice summary: ${error.message}`);
+    console.log(error)
+    next(error);
+  }
+};
+
+// Get Recent Invoices across all stores
+exports.getRecentInvoices = async (req, res, next) => {
+  try {
+    const storeIds = req.user.stores
+
+    const recentInvoices = await Invoice.findAll({
+      where: { store_id: { [Op.in]: storeIds } },
+      include: [
+        { model: Contact, attributes: ['id', 'name', 'email'] },
+        { model: Store, attributes: ['id', 'store_name'] },
+      ],
+      order: [['createdAt', 'DESC']],
+      limit: 5,
+    });
+
+    return res.status(200).json(recentInvoices);
+  } catch (error) {
+    logger.error(`Error fetching recent invoices: ${error.message}`);
+    next(error);
+  }
+};
