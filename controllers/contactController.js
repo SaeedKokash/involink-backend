@@ -58,7 +58,6 @@ exports.createContact = async (req, res, next) => {
 
     return res.status(201).json(newContact);
   } catch (error) {
-    console.log(error);
     logger.error(`Error creating contact: ${error.message}`);
     next(error);
   }
@@ -86,8 +85,8 @@ exports.getContactsByStore = async (req, res, next) => {
 
     return res.status(200).json(paginatedContacts);
   } catch (error) {
-    console.error(error);
-    return res.status(500).json({ error: 'Failed to retrieve contacts' });
+    logger.error(`Error retrieving contacts: ${error.message}`);
+    next(error);
   }
 };
 
@@ -105,38 +104,35 @@ exports.getContactById = async (req, res, next) => {
     });
 
     if (!contact) {
-      return res.status(404).json({ error: 'Contact not found' });
+      return next({ statusCode: 404, message: 'Contact not found' });
     }
 
     return res.status(200).json(contact);
   } catch (error) {
-    console.error(error);
-    return res.status(500).json({ error: 'Failed to retrieve contact' });
+    logger.error(`Error retrieving contact: ${error.message}`);
+    next(error);
   }
 };
 
 // Update a contact
 exports.updateContact = async (req, res, next) => {
   try {
-    console.log("updateContact");
     const contactId = req.params.contact_id;
 
     // Find the contact by ID
     const contact = await Contact.findByPk(contactId);
 
     if (!contact) {
-      return res.status(404).json({ error: 'Contact not found' });
+      return next({ statusCode: 404, message: 'Contact not found' });
     }
-
-    console.log(contact);
 
     // Update the contact
     const updatedContact = await contact.update(req.body);
 
     return res.status(200).json(updatedContact);
   } catch (error) {
-    console.log(error);
-    return res.status(500).json({ error: 'Failed to update contact' });
+    logger.error(`Error updating contact: ${error.message}`);
+    next(error);
   }
 };
 
@@ -149,15 +145,15 @@ exports.deleteContact = async (req, res, next) => {
     const contact = await Contact.findByPk(contactId);
 
     if (!contact) {
-      return res.status(404).json({ error: 'Contact not found' });
+      return next({ statusCode: 404, message: 'Contact not found' });
     }
 
     // Soft delete the contact (if paranoid is enabled)
     await contact.destroy();
 
-    return res.status(200).json({ message: 'Contact deleted successfully' });
+    return res.status(204).send();
   } catch (error) {
-    console.error(error);
-    return res.status(500).json({ error: 'Failed to delete contact' });
+    logger.error(`Error deleting contact: ${error.message}`);
+    next(error);
   }
 };

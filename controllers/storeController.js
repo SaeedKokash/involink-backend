@@ -21,8 +21,6 @@ exports.createStore = async (req, res, next) => {
       user_type: 'User',
     });
 
-    console.log(newuserstore)
-
     return res.status(201).json(newStore);
   } catch (error) {
     logger.error(`Error creating store: ${error.message}`);
@@ -37,8 +35,6 @@ exports.getStoresByUser = async (req, res, next) => {
 
     const storeIds = req.user.stores // Assuming req.user.stores contains associated store IDs
 
-    console.log(storeIds)
-
     // Retrieve all stores associated with the user
     const stores = await Store.findAll({
       include: [
@@ -52,8 +48,8 @@ exports.getStoresByUser = async (req, res, next) => {
 
     return res.status(200).json(stores);
   } catch (error) {
-    console.error(error);
-    return res.status(500).json({ error: 'Failed to retrieve stores' });
+    logger.error(`Error retrieving stores: ${error.message}`);
+    next(error);
   }
 };
 
@@ -93,13 +89,13 @@ exports.getStoreById = async (req, res, next) => {
     });
 
     if (!store) {
-      return res.status(404).json({ error: 'Store not found' });
+      return next({ statusCode: 404, message: 'Store not found' });
     }
 
     return res.status(200).json(store);
   } catch (error) {
-    console.error(error);
-    return res.status(500).json({ error: 'Failed to retrieve store' });
+    logger.error(`Error retrieving store: ${error.message}`);
+    next(error);
   }
 };
 
@@ -120,20 +116,20 @@ exports.updateStore = async (req, res, next) => {
     });
 
     if (!store) {
-      return res.status(404).json({ error: 'Store not found' });
+      return next({ statusCode: 404, message: 'Store not found' });
     }
 
     // check if the user is authorized to update the store (only the store owner can update the store)
     if (store.Users[0].id !== req.user.id) {
-      return res.status(403).json({ error: 'You are not authorized to update this store' });
+      return next({ statusCode: 403, message: 'You are not authorized to update this store' });
     }
     // Update the store
     const updatedStore = await store.update(req.body);
 
     return res.status(200).json(updatedStore);
   } catch (error) {
-    console.error(error);
-    return res.status(500).json({ error: 'Failed to update store' });
+    logger.error(`Error updating store: ${error.message}`);
+    next(error);
   }
 };
 
@@ -154,22 +150,20 @@ exports.deleteStore = async (req, res, next) => {
     });
 
     if (!store) {
-      return res.status(404).json({ error: 'Store not found' });
+      return next({ statusCode: 404, message: 'Store not found' });
     }
 
-    console.log(store.Users[0].id, req.user.id);
-
     if (store.Users[0].id !== req.user.id) {
-      return res.status(403).json({ error: 'You are not authorized to delete this store' });
+      return next({ statusCode: 403, message: 'You are not authorized to delete this store' });
     }
 
     // Soft delete the store (if paranoid is enabled)
     await store.destroy();
 
-    return res.status(200).json({ message: 'Store deleted successfully' });
+    return res.status(204).send();
   } catch (error) {
-    console.error(error);
-    return res.status(500).json({ error: 'Failed to delete store' });
+    logger.error(`Error deleting store: ${error.message}`);
+    next(error);
   }
 };
 
@@ -182,17 +176,17 @@ exports.restoreStore = async (req, res, next) => {
     const store = await Store.restore({ where: { id: storeId } });
 
     if (store.Users[0].id !== req.user.id) {
-      return res.status(403).json({ error: 'You are not authorized to restore this store' });
+      return next({ statusCode: 403, message: 'You are not authorized to restore this store' });
     }
 
     if (!store) {
-      return res.status(404).json({ error: 'Store not found' });
+      return next({ statusCode: 404, message: 'Store not found' });
     }
 
     return res.status(200).json({ message: 'Store restored successfully' });
   } catch (error) {
-    console.error(error);
-    return res.status(500).json({ error: 'Failed to restore store' });
+    logger.error(`Error restoring store: ${error.message}`);
+    next(error);
   }
 };
 
