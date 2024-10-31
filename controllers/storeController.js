@@ -33,8 +33,6 @@ exports.getStoresByUser = async (req, res, next) => {
   try {
     const userId = req.user.id;
 
-    const storeIds = req.user.stores // Assuming req.user.stores contains associated store IDs
-
     // Retrieve all stores associated with the user
     const stores = await Store.findAll({
       include: [
@@ -42,6 +40,7 @@ exports.getStoresByUser = async (req, res, next) => {
           model: User,
           where: { id: userId },
           attributes: ['name', 'email'], // Optionally include user details
+          through: { attributes: [] }, // This prevents the UserStore data from being included
         },
       ],
     });
@@ -52,19 +51,6 @@ exports.getStoresByUser = async (req, res, next) => {
     next(error);
   }
 };
-
-// // Get all stores
-// exports.getAllStores = async (req, res, next) => {
-//   try {
-//     // Retrieve all stores
-//     const stores = await Store.findAll();
-
-//     return res.status(200).json(stores);
-//   } catch (error) {
-//     console.error(error);
-//     return res.status(500).json({ error: 'Failed to retrieve stores' });
-//   }
-// };
 
 // Get a single store by ID, including associated data
 exports.getStoreById = async (req, res, next) => {
@@ -83,8 +69,6 @@ exports.getStoreById = async (req, res, next) => {
         { model: Item },
         { model: Contact },
         { model: Account },
-        // { model: Bill },
-        // { model: ModuleHistory },
       ],
     });
 
@@ -119,10 +103,6 @@ exports.updateStore = async (req, res, next) => {
       return next({ statusCode: 404, message: 'Store not found' });
     }
 
-    // check if the user is authorized to update the store (only the store owner can update the store)
-    if (store.Users[0].id !== req.user.id) {
-      return next({ statusCode: 403, message: 'You are not authorized to update this store' });
-    }
     // Update the store
     const updatedStore = await store.update(req.body);
 
@@ -139,22 +119,10 @@ exports.deleteStore = async (req, res, next) => {
     const storeId = req.params.store_id;
 
     // Find the store by ID
-    const store = await Store.findByPk(storeId, {
-      include: [
-        {
-          model: User,
-          attributes: ['id', 'name', 'email'],
-          through: { attributes: [] }, // This prevents the UserStore data from being included
-        },
-      ],
-    });
+    const store = await Store.findByPk(storeId);
 
     if (!store) {
       return next({ statusCode: 404, message: 'Store not found' });
-    }
-
-    if (store.Users[0].id !== req.user.id) {
-      return next({ statusCode: 403, message: 'You are not authorized to delete this store' });
     }
 
     // Soft delete the store (if paranoid is enabled)
@@ -175,15 +143,11 @@ exports.restoreStore = async (req, res, next) => {
     // Restore the store
     const store = await Store.restore({ where: { id: storeId } });
 
-    if (store.Users[0].id !== req.user.id) {
-      return next({ statusCode: 403, message: 'You are not authorized to restore this store' });
-    }
-
     if (!store) {
       return next({ statusCode: 404, message: 'Store not found' });
     }
 
-    return res.status(200).json({ message: 'Store restored successfully' });
+    return res.status(200).json(store);
   } catch (error) {
     logger.error(`Error restoring store: ${error.message}`);
     next(error);
