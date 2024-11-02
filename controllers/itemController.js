@@ -1,6 +1,4 @@
-const { Item, UserStore, Store, Tax, 
-  // Category
-} = require('../models'); // Import necessary models
+const { Item, Store, Tax } = require('../models'); // Import necessary models
 const logger = require('../config/logger');
 const { paginate } = require('../utils/pagination');
 const { Op } = require('sequelize');
@@ -17,23 +15,15 @@ exports.createItem = async (req, res, next) => {
       quantity,
       category_id,
       tax_id,
-      enabled,
-      store_id
+      enabled
     } = req.body;
 
-    // Check if user has access to the store
-    const userStore = await UserStore.findOne({
-      where: { user_id: req.user.id, store_id },
-    });
-
-    if (!userStore) {
-      next({ statusCode: 403, message: 'You are not authorized to access this resource' });
-    }
+    const storeId = req.params.store_id;
 
     // Ensure SKU is unique per store
     if (sku) {
       const existingItem = await Item.findOne({
-        where: { store_id, sku },
+        where: { storeId, sku },
       });
       if (existingItem) {
         next({ statusCode: 400, message: 'SKU already exists' });
@@ -51,7 +41,7 @@ exports.createItem = async (req, res, next) => {
       category_id,
       tax_id,
       enabled,
-      store_id,
+      store_id: storeId,
     });
 
     return res.status(201).json(newItem);
@@ -66,7 +56,7 @@ exports.getItemsByStore = async (req, res, next) => {
   try {
     const storeId = req.params.store_id;
     
-    const search = req.query.search;
+    const search = req.query.search || '';
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
 
@@ -101,7 +91,6 @@ exports.getItemById = async (req, res, next) => {
     // Fetch the item by ID, including related category and tax details
     const item = await Item.findByPk(itemId, {
       include: [
-        // { model: Category, attributes: ['name'] },
         { model: Tax, attributes: ['name', 'rate'] },
       ],
     });
@@ -130,7 +119,7 @@ exports.updateItem = async (req, res, next) => {
     }
 
     // Check if the store, category, or tax need to be validated
-    const { category_id, tax_id, store_id } = req.body;
+    const { tax_id, store_id } = req.body;
 
     if (store_id) {
       const store = await Store.findByPk(store_id);
@@ -138,13 +127,6 @@ exports.updateItem = async (req, res, next) => {
         return next({ statusCode: 404, message: 'Store not found' });
       }
     }
-
-    // if (category_id) {
-    //   const category = await Category.findByPk(category_id);
-    //   if (!category) {
-    //     return next({ statusCode: 404, message: 'Category not found' });
-    //   }
-    // }
 
     if (tax_id) {
       const tax = await Tax.findByPk(tax_id);

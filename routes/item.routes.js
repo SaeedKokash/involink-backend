@@ -1,22 +1,18 @@
 const express = require('express');
 const router = express.Router({ mergeParams: true });
-// const itemRoutes = express.Router({ mergeParams: true });
-const itemController = require('../controllers/itemController');
 
+const { createItem, getItemsByStore, getItemById, updateItem, deleteItem } = require('../controllers/itemController');
 const { validateItem } = require('../validators/itemValidator');
-const { authorizeStoreAccess, authorizeItemAccess } = require('../middlewares/authorization');
+const { authorizeItemAccess } = require('../middlewares/authorization');
 
+// Apply authorizeItemAccess middleware to routes with :item_id
+router.use('/:item_id', authorizeItemAccess);
 
 // CRUD operations for Items
-router.post('/', validateItem, itemController.createItem);
-
-router.get('/', itemController.getItemsByStore);
-
-router.get('/:item_id', itemController.getItemById);
-
-router.put('/:item_id', validateItem, itemController.updateItem);
-
-router.delete('/:item_id', itemController.deleteItem);
-
+router.post('/', validateItem, createItem);
+router.get('/', getItemsByStore);
+router.get('/:item_id', getItemById);
+router.put('/:item_id', validateItem, updateItem);
+router.delete('/:item_id', deleteItem);
 
 module.exports = router;

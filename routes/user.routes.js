@@ -2,7 +2,7 @@ const express = require('express');
 const userController = require('../controllers/userController');
 const authMiddleware = require('../middlewares/authMiddleware');
 // const { checkPermission } = require('../middleware/permissionMiddleware');
-const router = express.Router();
+const router = express.Router({ mergeParams: true });
 
 router.get('/', authMiddleware.authorize('admin'), userController.getUsers);
 router.get('/:id', userController.getUserById);

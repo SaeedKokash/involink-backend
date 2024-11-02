@@ -10,7 +10,7 @@ exports.validateItem = (req, res, next) => {
     quantity: Joi.number().integer().min(0).required(),
     tax_id: Joi.number().integer().allow(null),
     enabled: Joi.boolean(),
-    store_id: Joi.number().integer().required(),
+    // store_id: Joi.number().integer().required(),
     // category_id: Joi.number().integer().allow(null), // Future use
   });
 
