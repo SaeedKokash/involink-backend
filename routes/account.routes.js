@@ -1,15 +1,19 @@
 const express = require('express');
-const router = express.Router();
-const accountController = require('../controllers/accountController');
+const router = express.Router({ mergeParams: true });
+
+const { createAccount, getAccountsByStore, getAccountById, updateAccount, deleteAccount } = require('../controllers/accountController');
 const { validateAccount } = require('../validators/accountValidator');
-const { authorizeStoreAccess, authorizeAccountAccess } = require('../middlewares/authorization');
+const { authorizeAccountAccess } = require('../middlewares/authorization');
+
+// Apply authorizeAccountAccess middleware to routes with :account_id
+router.use('/:account_id', authorizeAccountAccess);
 
 // CRUD operations for Accounts
-router.post('/', authorizeStoreAccess, validateAccount, accountController.createAccount);
-router.get('/:account_id', authorizeAccountAccess, accountController.getAccountById);
-router.put('/:account_id', authorizeAccountAccess, validateAccount, accountController.updateAccount);
-router.delete('/:account_id', authorizeAccountAccess, accountController.deleteAccount);
+router.post('/', validateAccount, createAccount);
+router.get('/', getAccountsByStore);
+router.get('/:account_id', getAccountById);
+router.put('/:account_id', validateAccount, updateAccount);
+router.delete('/:account_id', deleteAccount);
 
-router.get('/store/:store_id', authorizeStoreAccess, accountController.getAccountsByStore);
 
 module.exports = router;

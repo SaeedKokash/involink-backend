@@ -25,10 +25,11 @@ router.use("/users", authenticate, userRoutes);
 
 router.use("/stores", authenticate, storeRoutes);
 router.use('/stores/:store_id/items', authenticate, authorizeStoreAccess, itemRoutes);
-router.use('/stores/:store_id/invoices', authenticate, authorizeStoreAccess, invoiceRoutes);
-router.use('/stores/:store_id/rtps', authenticate, authorizeStoreAccess, rtpRoutes);
 router.use('/stores/:store_id/accounts', authenticate, authorizeStoreAccess, accountRoutes);
 router.use('/stores/:store_id/contacts', authenticate, authorizeStoreAccess, contactRoutes);
+
+router.use('/stores/:store_id/invoices', authenticate, authorizeStoreAccess, invoiceRoutes);
+router.use('/stores/:store_id/rtps', authenticate, authorizeStoreAccess, rtpRoutes);
 router.use('/stores/:store_id/taxes', authenticate, authorizeStoreAccess, taxRoutes);
 
 module.exports = router;
