@@ -1,5 +1,6 @@
 const express = require('express');
-const router = express.Router();
+const router = express.Router({ mergeParams: true });
+// const itemRoutes = express.Router({ mergeParams: true });
 const itemController = require('../controllers/itemController');
 
 const { validateItem } = require('../validators/itemValidator');
@@ -7,11 +8,15 @@ const { authorizeStoreAccess, authorizeItemAccess } = require('../middlewares/au
 
 
 // CRUD operations for Items
-router.post('/', authorizeStoreAccess, validateItem, itemController.createItem);
-router.get('/:item_id', authorizeItemAccess, itemController.getItemById);
-router.put('/:item_id', authorizeItemAccess,validateItem, itemController.updateItem);
-router.delete('/:item_id', authorizeItemAccess, itemController.deleteItem);
+router.post('/', validateItem, itemController.createItem);
 
-router.get('/store/:store_id',authorizeStoreAccess, itemController.getItemsByStore);
+router.get('/', itemController.getItemsByStore);
+
+router.get('/:item_id', itemController.getItemById);
+
+router.put('/:item_id', validateItem, itemController.updateItem);
+
+router.delete('/:item_id', itemController.deleteItem);
+
 
 module.exports = router;

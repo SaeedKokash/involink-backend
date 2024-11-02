@@ -5,6 +5,8 @@ exports.authorizeStoreAccess = async (req, res, next) => {
   const userId = req.user.id;
   const storeId = req.body.store_id || req.params.store_id;
 
+  console.log('authorize mw params', req.params);
+
   // Check if user has access to the store
   const userStore = await UserStore.findOne({
     where: { user_id: userId, store_id: storeId },
@@ -14,7 +16,6 @@ exports.authorizeStoreAccess = async (req, res, next) => {
     return res.status(403).json({ error: 'You are not authorized to access this store' });
   }
 
-  console.log('User has access to the store');
   next();
 };
 
