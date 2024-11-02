@@ -1,10 +1,10 @@
 'use strict';
 
+require('dotenv').config();
+const jwt = require('jsonwebtoken');
 const logger = require('../config/logger');
 const { User, RefreshToken, Role, UserRole } = require('../models');
 const { signAccessToken, signRefreshToken } = require('../utils/tokenUtils');
-const jwt = require('jsonwebtoken');
-require('dotenv').config();
 
 exports.signup = async (req, res, next) => {
   try {
@@ -56,7 +56,7 @@ exports.login = async (req, res, next) => {
     const user = await User.findOne({ where: { email } });
 
     if (!user || !(await user.isValidPassword(password))) {
-      return res.status(400).json({ error: 'Invalid email or password' });
+      return next({ statusCode: 400, message: 'Invalid email or password' });
     }
 
     const accessToken = signAccessToken(user);
@@ -87,7 +87,7 @@ exports.logout = async (req, res, next) => {
       res.clearCookie('refreshToken'); // Clear the refresh token cookie
     }
     
-      logger.info(`User logged out: ${req.user.email}`);
+    logger.info(`User logged out: ${req.user.email}`);
 
     res.status(200).json({ message: 'Logged out successfully' });
   } catch (error) {
@@ -101,20 +101,20 @@ exports.refreshToken = async (req, res, next) => {
     const token = req.cookies.refreshToken; // Get refresh token from HTTP-only cookie
 
     if (!token) {
-      return res.status(403).json({ message: 'Refresh token not found' });
+      return next({ statusCode: 403, message: 'Refresh token not found' });
     }
 
     // Verify the refresh token
     const existingToken = await RefreshToken.findOne({ where: { token } });
 
     if (!existingToken) {
-      return res.status(403).json({ message: 'Invalid refresh token' });
+      return next({ statusCode: 403, message: 'Invalid refresh token' });
     }
 
     // Check if the token is expired
     if (RefreshToken.isExpired(existingToken)) {
       await RefreshToken.destroy({ where: { token } });
-      return res.status(403).json({ message: 'Refresh token expired' });
+      return next({ statusCode: 403, message: 'Refresh token expired' });
     }
 
     // Verify the JWT token
@@ -129,7 +129,7 @@ exports.refreshToken = async (req, res, next) => {
     return res.status(200).json({ accessToken: newAccessToken, user });
   } catch (error) {
     logger.error(`Error refreshing token: ${error.message}`);
-    res.status(403).json({ error: 'Invalid refresh token' });
+    next(error);
   }
 };
 

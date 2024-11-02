@@ -1,4 +1,4 @@
-const { Account, Store, UserStore } = require('../models'); // Assuming your models are in a folder called models
+const { Account } = require('../models');
 const logger = require('../config/logger');
 const { paginate } = require('../utils/pagination');
 
@@ -8,15 +8,6 @@ exports.createAccount = async (req, res, next) => {
     const { name, number, currency_code, opening_balance, bank_name, bank_phone, bank_address, enabled } = req.body;
 
     const storeId = req.body.store_id || req.params.store_id;  // Make sure the store ID is provided
-
-    // Check if user has access to the store
-    const userStore = await UserStore.findOne({
-      where: { user_id: req.user.id, store_id: storeId },
-    });
-
-    if (!userStore) {
-      next({ statusCode: 403, message: 'You are not authorized to access this resource' });
-    }
 
     const newAccount = await Account.create({
       name,
@@ -72,13 +63,13 @@ exports.getAccountById = async (req, res, next) => {
     const account = await Account.findByPk(accountId);
 
     if (!account) {
-      return res.status(404).json({ error: 'Account not found' });
+      return next({ statusCode: 404, message: 'Account not found' });
     }
 
     return res.status(200).json(account);
   } catch (error) {
-    console.error(error);
-    return res.status(500).json({ error: 'Failed to retrieve account' });
+    logger.error(`Error retrieving account: ${error.message}`);
+    next(error);
   }
 };
 
@@ -90,15 +81,15 @@ exports.updateAccount = async (req, res, next) => {
     const account = await Account.findByPk(accountId);
 
     if (!account) {
-      return res.status(404).json({ error: 'Account not found' });
+      return next({ statusCode: 404, message: 'Account not found' });
     }
 
     const updatedAccount = await account.update(req.body);
 
     return res.status(200).json(updatedAccount);
   } catch (error) {
-    console.log(error);
-    return res.status(500).json({ error: 'Failed to update account' });
+    logger.error(`Error updating account: ${error.message}`);
+    next(error);
   }
 };
 
@@ -110,14 +101,14 @@ exports.deleteAccount = async (req, res, next) => {
     const account = await Account.findByPk(accountId);
 
     if (!account) {
-      return res.status(404).json({ error: 'Account not found' });
+      return next({ statusCode: 404, message: 'Account not found' });
     }
 
     await account.destroy();  // This will perform a soft delete if paranoid is enabled
 
-    return res.status(200).json({ message: 'Account deleted successfully' });
+    return res.status(204).send();
   } catch (error) {
-    console.error(error);
-    return res.status(500).json({ error: 'Failed to delete account' });
+    logger.error(`Error deleting account: ${error.message}`);
+    next(error);
   }
 };

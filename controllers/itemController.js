@@ -54,11 +54,8 @@ exports.createItem = async (req, res, next) => {
       store_id,
     });
 
-    console.log(newItem);
-
     return res.status(201).json(newItem);
   } catch (error) {
-    console.error(error);
     logger.error(`Error creating item: ${error.message}`);
     next(error);
   }
@@ -91,7 +88,6 @@ exports.getItemsByStore = async (req, res, next) => {
     return res.status(200).json(paginatedItems);
   } catch (error) {
     logger.error(`Error retrieving items: ${error.message}`);
-    console.log(error);
     next(error);
   }
 };
@@ -110,13 +106,13 @@ exports.getItemById = async (req, res, next) => {
     });
 
     if (!item) {
-      return res.status(404).json({ error: 'Item not found' });
+      return next({ statusCode: 404, message: 'Item not found' });
     }
 
     return res.status(200).json(item);
   } catch (error) {
-    console.error(error);
-    return res.status(500).json({ error: 'Failed to retrieve item' });
+    logger.error(`Error retrieving item: ${error.message}`);
+    next(error);
   }
 };
 
@@ -129,7 +125,7 @@ exports.updateItem = async (req, res, next) => {
     const item = await Item.findByPk(itemId);
 
     if (!item) {
-      return res.status(404).json({ error: 'Item not found' });
+      return next({ statusCode: 404, message: 'Item not found' });
     }
 
     // Check if the store, category, or tax need to be validated
@@ -138,21 +134,21 @@ exports.updateItem = async (req, res, next) => {
     if (store_id) {
       const store = await Store.findByPk(store_id);
       if (!store) {
-        return res.status(404).json({ error: 'Store not found' });
+        return next({ statusCode: 404, message: 'Store not found' });
       }
     }
 
     // if (category_id) {
     //   const category = await Category.findByPk(category_id);
     //   if (!category) {
-    //     return res.status(404).json({ error: 'Category not found' });
+    //     return next({ statusCode: 404, message: 'Category not found' });
     //   }
     // }
 
     if (tax_id) {
       const tax = await Tax.findByPk(tax_id);
       if (!tax) {
-        return res.status(404).json({ error: 'Tax not found' });
+        return next({ statusCode: 404, message: 'Tax not found' });
       }
     }
 
@@ -161,8 +157,8 @@ exports.updateItem = async (req, res, next) => {
 
     return res.status(200).json(updatedItem);
   } catch (error) {
-    console.error(error);
-    return res.status(500).json({ error: 'Failed to update item' });
+    logger.error(`Error updating item: ${error.message}`);
+    next(error);
   }
 };
 
@@ -175,15 +171,15 @@ exports.deleteItem = async (req, res, next) => {
     const item = await Item.findByPk(itemId);
 
     if (!item) {
-      return res.status(404).json({ error: 'Item not found' });
+      return next({ statusCode: 404, message: 'Item not found' });
     }
 
     // Soft delete the item (if paranoid is enabled)
     await item.destroy();
 
-    return res.status(200).json({ message: 'Item deleted successfully' });
+    return res.status(204).send();
   } catch (error) {
-    console.error(error);
-    return res.status(500).json({ error: 'Failed to delete item' });
+    logger.error(`Error deleting item: ${error.message}`);
+    next(error);
   }
 };

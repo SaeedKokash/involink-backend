@@ -282,7 +282,6 @@ exports.createInvoice = async (req, res, next) => {
 
     return res.status(201).json(newInvoice);
   } catch (error) {
-    console.log(error)
     await transaction.rollback();
     logger.error(`Error creating invoice: ${error.message}`);
     next(error);
@@ -396,13 +395,13 @@ exports.createInvoice = async (req, res, next) => {
       });
 
       if (!invoice) {
-        return res.status(404).json({ error: 'Invoice not found' });
+        return next({ statusCode: 404, message: 'Invoice not found' });
       }
 
       return res.status(200).json(invoice);
     } catch (error) {
-      console.error(error);
-      return res.status(500).json({ error: 'Failed to retrieve invoice' });
+      logger.error(`Error retrieving invoice: ${error.message}`);
+      next(error);
     }
   };
 
@@ -431,7 +430,7 @@ exports.updateInvoice = async (req, res, next) => {
 
     if (!invoice) {
       await transaction.rollback();
-      return res.status(404).json({ error: 'Invoice not found' });
+      return next({ statusCode: 404, message: 'Invoice not found' });
     }
 
     // Update the invoice fields
@@ -480,7 +479,7 @@ exports.updateInvoice = async (req, res, next) => {
 
         if (!item) {
           await transaction.rollback();
-          return res.status(400).json({ error: `Item with ID ${itemData.item_id} not found` });
+          return next({ statusCode: 404, message: `Item with ID ${itemData.item_id} not found` });
         }
 
         // Calculate totals
@@ -504,7 +503,7 @@ exports.updateInvoice = async (req, res, next) => {
 
             if (!tax) {
               await transaction.rollback();
-              return res.status(400).json({ error: `Tax with ID ${taxId} not found` });
+              return next({ statusCode: 404, message: `Tax with ID ${taxId} not found` });
             }
 
             const taxLineAmount = (taxableAmount * tax.rate) / 100;
@@ -559,7 +558,7 @@ exports.updateInvoice = async (req, res, next) => {
             // });
           } else {
             await transaction.rollback();
-            return res.status(400).json({ error: `Invoice item with ID ${itemData.id} not found` });
+            return next({ statusCode: 404, message: `Invoice item with ID ${itemData.id} not found` });
           }
         } else {
           // Create new invoice item
@@ -620,9 +619,9 @@ exports.updateInvoice = async (req, res, next) => {
 
     return res.status(200).json(updatedInvoice);
   } catch (error) {
-    console.error(error);
     await transaction.rollback();
-    return res.status(500).json({ error: 'Failed to update invoice' });
+    logger.error(`Error updating invoice: ${error.message}`);
+    next(error);
   }
 };
   // Delete an invoice (soft delete)
@@ -634,16 +633,16 @@ exports.updateInvoice = async (req, res, next) => {
       const invoice = await Invoice.findByPk(invoiceId);
 
       if (!invoice) {
-        return res.status(404).json({ error: 'Invoice not found' });
+        return next({ statusCode: 404, message: 'Invoice not found' });
       }
 
       // Soft delete the invoice (if paranoid is enabled)
       await invoice.destroy();
 
-      return res.status(200).json({ message: 'Invoice deleted successfully' });
+      return res.status(204).send();
     } catch (error) {
-      console.error(error);
-      return res.status(500).json({ error: 'Failed to delete invoice' });
+      logger.error(`Error deleting invoice: ${error.message}`);
+      next(error);
     }
   };
 

@@ -16,7 +16,7 @@ exports.createTax = async (req, res, next) => {
     });
 
     if (!userStore) {
-      next({ statusCode: 403, message: 'You are not authorized to access this resource' });
+      return next({ statusCode: 403, message: 'You are not authorized to access this resource' });
     }
 
     // Create the tax
@@ -58,8 +58,8 @@ exports.getTaxesByStore = async (req, res, next) => {
 
     return res.status(200).json(result);
   } catch (error) {
-    console.log(error);
-    return res.status(500).json({ error: 'Failed to retrieve taxes' });
+    logger.error(`Error retrieving taxes: ${error.message}`);
+    next(error);
   }
 };
 
@@ -78,13 +78,13 @@ exports.getTaxById = async (req, res, next) => {
     });
 
     if (!tax) {
-      return res.status(404).json({ error: 'Tax not found' });
+      return  next({ statusCode: 404, message: 'Tax not found' });
     }
 
     return res.status(200).json(tax);
   } catch (error) {
-    console.error(error);
-    return res.status(500).json({ error: 'Failed to retrieve tax' });
+    logger.error(`Error retrieving tax: ${error.message}`);
+    next(error);
   }
 };
 
@@ -97,7 +97,7 @@ exports.updateTax = async (req, res, next) => {
     const tax = await Tax.findByPk(taxId);
 
     if (!tax) {
-      return res.status(404).json({ error: 'Tax not found' });
+      return next({ statusCode: 404, message: 'Tax not found' });
     }
 
     // Update the tax
@@ -105,8 +105,8 @@ exports.updateTax = async (req, res, next) => {
 
     return res.status(200).json(updatedTax);
   } catch (error) {
-    console.error(error);
-    return res.status(500).json({ error: 'Failed to update tax' });
+    logger.error(`Error updating tax: ${error.message}`);
+    next(error);
   }
 };
 
@@ -119,15 +119,15 @@ exports.deleteTax = async (req, res, next) => {
     const tax = await Tax.findByPk(taxId);
 
     if (!tax) {
-      return res.status(404).json({ error: 'Tax not found' });
+      return next({ statusCode: 404, message: 'Tax not found' });
     }
 
     // Soft delete the tax (if paranoid is enabled)
     await tax.destroy();
 
-    return res.status(200).json({ message: 'Tax deleted successfully' });
+    return res.status(204).send();
   } catch (error) {
-    console.error(error);
-    return res.status(500).json({ error: 'Failed to delete tax' });
+    logger.error(`Error deleting tax: ${error.message}`);
+    next(error);
   }
 };
