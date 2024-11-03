@@ -51,10 +51,11 @@ exports.createInvoice = async (req, res, next) => {
       contact_address,
       notes,
       footer,
-      store_id,
       invoice_items,  // Array of invoice items
       request_to_pay,  // RequestToPay data
     } = req.body;
+
+    const storeId = req.params.store_id;
 
     console.log(req.body.store_id)
 
@@ -127,7 +128,7 @@ exports.createInvoice = async (req, res, next) => {
       contact_address,
       notes,
       footer,
-      store_id,
+      store_id: storeId,
     }, { transaction: transaction });
 
     // Calculate totals
@@ -140,7 +141,7 @@ exports.createInvoice = async (req, res, next) => {
     let invoiceTotal = 0;
     for (const itemData of invoice_items) {
       // console.log("itemData================================================================================================", itemData)
-      const item = await Item.findOne({ where: { id: itemData.item_id, store_id: store_id } });
+      const item = await Item.findOne({ where: { id: itemData.item_id, store_id: storeId } });
 
       // console.log("items================================================================================================", item)
 
@@ -153,13 +154,13 @@ exports.createInvoice = async (req, res, next) => {
       // Calculate taxes
       let taxAmount = 0;
       // for (const taxId of itemData.taxes) {
-      //   const tax = await Tax.findOne({ where: { id: taxId, store_id: store_id } });
+      //   const tax = await Tax.findOne({ where: { id: taxId, store_id: storeId } });
       //   const taxLineAmount = (taxableAmount * tax.rate) / 100;
       //   taxAmount += taxLineAmount;
 
       //   // Insert into invoice_item_taxes
       //   await InvoiceItemTax.create({
-      //     store_id: store_id,
+      //     store_id: storeId,
       //     invoice_id: newInvoice.id,
       //     invoice_item_id: invoiceItem.id,
       //     tax_id: tax.id,
@@ -174,7 +175,7 @@ exports.createInvoice = async (req, res, next) => {
 
       // Insert into invoice_items
       await InvoiceItem.create({
-        store_id: store_id,
+        store_id: storeId,
         invoice_id: newInvoice.id,
         item_id: item.id,
         name: item.name,
@@ -196,7 +197,7 @@ exports.createInvoice = async (req, res, next) => {
     // for (const item of invoice_items) {
     //   await InvoiceItem.create(
     //     {
-    //       store_id,
+    //       store_id: storeId,
     //       invoice_id: invoice.id,
     //       item_id: item.item_id,
     //       name: item.name,
@@ -215,7 +216,7 @@ exports.createInvoice = async (req, res, next) => {
     // Add to invoice histories
     await InvoiceHistory.create(
       {
-        store_id,
+        store_id: storeId,
         invoice_id: newInvoice.id,
         status: 'draft',
         notify: false,

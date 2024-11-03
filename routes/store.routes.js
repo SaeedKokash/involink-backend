@@ -5,6 +5,11 @@ const storeController = require('../controllers/storeController');
 
 const { authorizeStoreAccess } = require('../middlewares/authorization');
 
+const { createInvoice, getInvoicesByStore, getInvoiceById, updateInvoice, deleteInvoice, generateInvoicePDF, getInvoicePDF, getInvoiceSummary, getRecentInvoices } = require('../controllers/invoiceController');
+
+// CRUD operations for Invoices
+router.get('/summary', getInvoiceSummary);
+router.get('/recent', getRecentInvoices);
 
 // CRUD operations for Stores
 router.post('/', storeController.createStore);
@@ -21,3 +26,4 @@ router.post('/:store_id', authorizeStoreAccess, storeController.restoreStore);
 
 
 module.exports = router;
+

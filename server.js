@@ -8,17 +8,8 @@ require('dotenv').config();
 
 const port = process.env.PORT || 4000;
 
-const authRoutes = require('./routes/auth.routes');
-const userRoutes = require('./routes/user.routes');
-const storeRoutes = require('./routes/store.routes');
-const itemRoutes = require('./routes/item.routes');
-const invoiceRoutes = require('./routes/invoice.routes');
-const rtpRoutes = require('./routes/rtp.routes');
-const accountRoutes = require('./routes/account.routes');
-const contactRoutes = require('./routes/contact.routes');
-const taxRoutes = require('./routes/tax.routes');
+const routes = require('./routes/index');
 
-const authMiddleware = require('./middlewares/authMiddleware');
 const errorHandler = require('./middlewares/errorMiddleware');
 const requestLogger = require('./middlewares/requestLogger');
 const limiter = require('./middlewares/rateLimiter');
@@ -27,7 +18,6 @@ const helmet = require('helmet');
 const morgan = require('morgan');
 const logger = require('./config/logger');
 
-const routes = require('./routes/index');
 
 // const corsOptions = {
 //   origin: 'http://localhost:3000', // Frontend URL
@@ -65,19 +55,8 @@ app.use(morgan('combined', {
   },
 }));
 
-
+// all routes are prefixed with /api
 app.use('/api', routes);
-
-// app.use('/api/auth', authRoutes);
-// app.use('/api/users', authMiddleware.authenticate, userRoutes);
-// app.use('/api/stores', authMiddleware.authenticate, authMiddleware.authorize('merchant', 'admin'), storeRoutes);
-// // this will be transformed to /api/stores/:storeId/items
-// app.use('/api/items', authMiddleware.authenticate, authMiddleware.authorize('merchant', 'admin'), itemRoutes);
-// app.use('/api/invoices', authMiddleware.authenticate, authMiddleware.authorize('merchant', 'admin'), invoiceRoutes);
-// app.use('/api/rtps', authMiddleware.authenticate, authMiddleware.authorize('merchant', 'admin'), rtpRoutes);
-// app.use('/api/accounts', authMiddleware.authenticate, authMiddleware.authorize('merchant', 'admin'), accountRoutes);
-// app.use('/api/contacts', authMiddleware.authenticate, authMiddleware.authorize('merchant', 'admin'), contactRoutes);
-// app.use('/api/taxes', authMiddleware.authenticate, authMiddleware.authorize('merchant', 'admin'), taxRoutes);
 
 app.get("/", (req, res) => {
   res.status(200).send("Welcome To involink API");

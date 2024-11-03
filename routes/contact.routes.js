@@ -15,5 +15,4 @@ router.get('/:contact_id', getContactById);
 router.put('/:contact_id', validateContact, updateContact);
 router.delete('/:contact_id', deleteContact);
 
-
 module.exports = router;

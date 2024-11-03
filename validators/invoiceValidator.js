@@ -18,7 +18,7 @@ exports.validateInvoice = (req, res, next) => {
     contact_address: Joi.string().required(),
     notes: Joi.string().allow(''),
     footer: Joi.string().allow(''),
-    store_id: Joi.number().integer().required(),
+    // store_id: Joi.number().integer().required(),
     invoice_items: Joi.array().items(
       Joi.object({
         name: Joi.string().allow(''),

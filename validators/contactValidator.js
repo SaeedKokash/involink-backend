@@ -12,7 +12,7 @@ exports.validateContact = (req, res, next) => {
     currency_code: Joi.string().allow(''),
     enabled: Joi.boolean(),
     reference: Joi.string().allow(''),
-    store_id: Joi.number().integer().required(),
+    // store_id: Joi.number().integer().required(),
   });
 
   const { error } = schema.validate(req.body, { abortEarly: false });
