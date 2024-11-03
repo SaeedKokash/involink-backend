@@ -8,20 +8,13 @@ const { Tax, Store, UserStore
 // Create a new tax
 exports.createTax = async (req, res, next) => {
   try {
-    const { store_id, name, rate, type, enabled } = req.body;
+    const { name, rate, type, enabled } = req.body;
 
-    // Check if user has access to the store
-    const userStore = await UserStore.findOne({
-      where: { user_id: req.user.id, store_id },
-    });
-
-    if (!userStore) {
-      return next({ statusCode: 403, message: 'You are not authorized to access this resource' });
-    }
+    const storeId = req.params.store_id;
 
     // Create the tax
     const newTax = await Tax.create({
-      store_id,
+      store_id: storeId,
       name,
       rate,
       type,

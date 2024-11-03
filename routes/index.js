@@ -1,5 +1,3 @@
-// this index will provide the routing for the project
-
 'use strict';
 
 const express = require("express");
@@ -17,8 +15,6 @@ const taxRoutes = require("./tax.routes");
 
 const { authenticate, authorize } = require("../middlewares/authMiddleware");
 const { authorizeStoreAccess } = require('../middlewares/authorization');
-
-
 
 router.use("/auth", authRoutes);
 router.use("/users", authenticate, userRoutes);

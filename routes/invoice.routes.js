@@ -12,15 +12,12 @@ router.get('/summary', getInvoiceSummary);
 router.get('/recent', getRecentInvoices);
 
 router.post('/', validateInvoice, createInvoice);
+router.get('/', getInvoicesByStore);
 router.get('/:invoice_id', getInvoiceById);
 router.put('/:invoice_id', validateInvoice, updateInvoice);
 router.delete('/:invoice_id', deleteInvoice);
 
-router.get('/store/:store_id', getInvoicesByStore);
-
 // PDF generation route
-router.get('/store/:store_id/invoices/:invoice_id/pdf', getInvoicePDF);
-
-
+router.get('/:invoice_id/pdf', getInvoicePDF);
 
 module.exports = router;

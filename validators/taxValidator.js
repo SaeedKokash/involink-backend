@@ -7,7 +7,7 @@ exports.validateTax = (req, res, next) => {
     rate: Joi.number().min(0).max(100).required(),
     type: Joi.string().valid('sales', 'purchase').required(),
     enabled: Joi.boolean(),
-    store_id: Joi.number().integer().required(),
+    // store_id: Joi.number().integer().required(),
   });
 
   const { error } = schema.validate(req.body, { abortEarly: false });

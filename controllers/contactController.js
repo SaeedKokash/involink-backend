@@ -17,18 +17,10 @@ exports.createContact = async (req, res, next) => {
       currency_code,
       enabled,
       reference,
-      store_id,
       user_id = req.user.id,
     } = req.body;
 
-    // Check if user has access to the store
-    const userStore = await UserStore.findOne({
-      where: { user_id: req.user.id, store_id },
-    });
-
-    if (!userStore) {
-      next({ statusCode: 403, message: 'You are not authorized to access this resource' });
-    }
+    const storeId = req.params.store_id;
 
     // Ensure email is unique per store and type
     if (email) {
@@ -52,7 +44,7 @@ exports.createContact = async (req, res, next) => {
       currency_code,
       enabled,
       reference,
-      store_id,
+      store_id: storeId,
       user_id,
     });
 
