@@ -141,7 +141,11 @@ exports.generateInvoicePDFHelper = async (invoiceId) => {
   });
 
   // Use Puppeteer to generate the PDF
-  const browser = await puppeteer.launch();
+  const browser = await puppeteer.launch({
+    headless: true,
+    args: ['--no-sandbox', '--disable-setuid-sandbox'], // Disable sandboxing
+  });
+
   const page = await browser.newPage();
 
   // Embed CSS into the HTML template
