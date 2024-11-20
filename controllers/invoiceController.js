@@ -79,7 +79,7 @@ exports.createInvoice = async (req, res, next) => {
 
     // Check if user has access to the store
     const userStore = await UserStore.findOne({
-      where: { user_id: req.user.id, store_id },
+      where: { user_id: req.user.id, store_id: storeId },
     });
 
 
@@ -97,7 +97,7 @@ exports.createInvoice = async (req, res, next) => {
 
     // Generate invoice number if not provided
     if (!invoice_number) {
-      const newInvoiceNumber = await generateInvoiceNumber(store_id);
+      const newInvoiceNumber = await generateInvoiceNumber(storeId);
       if (!newInvoiceNumber) {
         await transaction.rollback();
         return next({ statusCode: 404, message: 'Error in generating invoice number, Store not found' });
@@ -114,7 +114,7 @@ exports.createInvoice = async (req, res, next) => {
     const newInvoice = await Invoice.create({
       invoice_number,
       order_number,
-      status: 'draft',
+      status: status,
       invoiced_at: invoiced_at || new Date(),
       due_at: due_at || new Date(),
       amount,
@@ -407,7 +407,7 @@ exports.createInvoice = async (req, res, next) => {
   };
 
   // Update an invoice
-exports.updateInvoice = async (req, res, next) => {
+ exports.updateInvoice = async (req, res, next) => {
   const transaction = await sequelize.transaction();
   try {
     const invoiceId = req.params.invoice_id;
@@ -647,9 +647,7 @@ exports.updateInvoice = async (req, res, next) => {
     }
   };
 
-
   // NEWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW
-
   exports.generateInvoicePDF = async (req, res, next) => {
     try {
       const { store_id, invoice_id } = req.params;

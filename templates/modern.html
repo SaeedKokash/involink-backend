@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Invoice</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="modern.css" />
+  </head>
+  <body>
+    <div class="header-container">
+      <!-- Dynamic Company Name -->
+      <h1 class="company-name"><%= companyName %></h1>
+
+      <!-- Dynamic Invoice Details -->
+      <table id="entity-details">
+        <tr><th>Invoice Number</th><th><%= invoiceNumber %></th></tr>
+        <tr><th>PO Number</th><th><%= poNumber %></th></tr>
+        <tr><th>Invoice Date</th><th><%= invoiceDate %></th></tr>
+        <tr><th>Due Date</th><th><%= dueDate %></th></tr>
+        <tr><th>Balance Due</th><th><%= balanceDue %></th></tr>
+      </table>
+    </div>
+
+    <div class="logo-client-wrapper">
+      <!-- Company Logo -->
+      <img class="company-logo" src="<%= logoUrl %>" alt="Company Logo" />
+      
+      <!-- Client Details -->
+      <div id="client-details">
+        <span><%= customerName %></span>
+        <span><%= customerEmail %></span>
+        <span><%= customerPhone %></span>
+        <span><%= customerAddress %></span>
+      </div>
+    </div>
+
+    <!-- Dynamic Product Table -->
+    <div class="table-wrapper">
+      <table id="product-table" cellspacing="0">
+        <thead>
+          <th>Item</th>
+          <th>Description</th>
+          <th>Unit Cost</th>
+          <th>Quantity</th>
+          <th>Line Total</th>
+        </thead>
+        <tbody>
+          <% if (items && items.length > 0) { %>
+            <% items.forEach(item => { %>
+            <tr>
+              <td><%= item.name %></td>
+              <td><%= item.description %></td>
+              <td><%= item.unitCost %></td>
+              <td><%= item.quantity %></td>
+              <td><%= item.lineTotal %></td>
+            </tr>
+            <% }); %>
+          <% } else { %>
+            <tr>
+              <td colspan="5">No items available.</td>
+            </tr>
+          <% } %>
+        </tbody>
+      </table>
+    </div>
+
+    <div id="product-table-footer">
+      <div>
+        <span>Subtotal</span>
+        <span><%= subtotal %></span>
+      </div>
+      <div>
+        <span>Discount</span>
+        <span><%= discount %></span>
+      </div>
+      <div>
+        <span>Balance Due</span>
+        <span><%= balanceDue %></span>
+      </div>
+    </div>
+
+    <div class="footer-wrapper">
+      <div id="company-details">
+        <span><%= footerCompanyName %></span>
+        <span><%= footerContact %></span>
+      </div>
+      <div id="company-address">
+        <span><%= footerAddress %></span>
+      </div>
+    </div>
+  </body>
+</html>
