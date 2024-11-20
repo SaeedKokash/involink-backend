@@ -7,7 +7,7 @@ libxkbcommon0
 libxcomposite1
 libxrandr2
 libgbm1
-libasound2
+iboss4-salsa-asound2
 libpangocairo-1.0-0
 libpango-1.0-0
 libcairo2
