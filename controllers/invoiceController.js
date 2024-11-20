@@ -31,7 +31,267 @@ function authorizeInvoiceCreation(req, res, next) {
 }
 
 // Create a new invoice
+// exports.createInvoice = async (req, res, next) => {
+//   const transaction = await sequelize.transaction(); // Use a transaction for consistency
+//   try {
+//     const {
+//       invoice_number,
+//       order_number,
+//       status,
+//       invoiced_at,
+//       due_at,
+//       amount,
+//       currency_code,
+//       currency_rate = 1,
+//       contact_id,
+//       contact_name,
+//       contact_email,
+//       contact_tax_number,
+//       contact_phone,
+//       contact_address,
+//       notes,
+//       footer,
+//       invoice_items,  // Array of invoice items
+//       request_to_pay,  // RequestToPay data
+//     } = req.body;
+
+//     const storeId = req.params.store_id;
+
+//     console.log(req.body.store_id)
+
+//     // NEWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW CHECK LATER
+//     // const {
+//     //   store_id,
+//     //   contact_id,
+//     //   items, // Array of items
+//     //   notes,
+//     //   invoiced_at,
+//     //   due_at,
+//     //   currency_code,
+//     //   currency_rate = 1,
+//     // } = req.body;
+
+//     // // Validate input
+//     // if (!store_id || !contact_id || !items || items.length === 0 || !currency_code) {
+//     //   return res.status(400).json({ message: 'Required fields are missing.' });
+//     // }
+
+
+//     // Check if user has access to the store
+//     const userStore = await UserStore.findOne({
+//       where: { user_id: req.user.id, store_id: storeId },
+//     });
+
+
+//     if (!userStore) {
+//       await transaction.rollback();
+//       return next({ statusCode: 403, message: 'You are not authorized to access this resource' });
+//     }
+
+//     // Check if the contact exists
+//     const contact = await Contact.findByPk(contact_id);
+//     if (!contact) {
+//       await transaction.rollback();
+//       return next({ statusCode: 404, message: 'Contact not found' });
+//     }
+
+//     // Generate invoice number if not provided
+//     if (!invoice_number) {
+//       const newInvoiceNumber = await generateInvoiceNumber(storeId);
+//       if (!newInvoiceNumber) {
+//         await transaction.rollback();
+//         return next({ statusCode: 404, message: 'Error in generating invoice number, Store not found' });
+//       }
+//       invoice_number = newInvoiceNumber;
+
+//       // another way to check and create, Generate unique invoice number (simple example)
+//       // const invoiceCount = await Invoice.count({ where: { store_id } });
+//       // const invoice_number = `INV-${store_id}-${invoiceCount + 1}`;
+//     }
+
+
+//     // Create the invoice
+//     const newInvoice = await Invoice.create({
+//       invoice_number,
+//       order_number,
+//       status: status,
+//       invoiced_at: invoiced_at || new Date(),
+//       due_at: due_at || new Date(),
+//       amount,
+//       currency_code,
+//       currency_rate,
+//       contact_id,
+//       contact_name,
+//       contact_email,
+//       contact_tax_number,
+//       contact_phone,
+//       contact_address,
+//       notes,
+//       footer,
+//       store_id: storeId,
+//     }, { transaction: transaction });
+
+//     // Calculate totals
+//     // let amount = 0;
+//     // for (const item of items) {
+//     //   const itemTotal = item.quantity * item.price;
+//     //   amount += itemTotal;
+//     // }
+
+//     let invoiceTotal = 0;
+//     for (const itemData of invoice_items) {
+//       // console.log("itemData================================================================================================", itemData)
+//       const item = await Item.findOne({ where: { id: itemData.item_id, store_id: storeId } });
+
+//       // console.log("items================================================================================================", item)
+
+//       const lineTotal = itemData.quantity * itemData.sale_price;
+//       const discountAmount = itemData.discount_type === 'percentage'
+//         ? (lineTotal * itemData.discount_rate) / 100
+//         : itemData.discount_rate;
+//       const taxableAmount = lineTotal - discountAmount;
+
+//       // Calculate taxes
+//       let taxAmount = 0;
+//       // for (const taxId of itemData.taxes) {
+//       //   const tax = await Tax.findOne({ where: { id: taxId, store_id: storeId } });
+//       //   const taxLineAmount = (taxableAmount * tax.rate) / 100;
+//       //   taxAmount += taxLineAmount;
+
+//       //   // Insert into invoice_item_taxes
+//       //   await InvoiceItemTax.create({
+//       //     store_id: storeId,
+//       //     invoice_id: newInvoice.id,
+//       //     invoice_item_id: invoiceItem.id,
+//       //     tax_id: tax.id,
+//       //     name: tax.name,
+//       //     amount: taxLineAmount,
+//       //     created_at: new Date(),
+//       //     updated_at: new Date(),
+//       //   }, { transaction });
+//       // }
+
+//       const totalAmount = taxableAmount + taxAmount;
+
+//       // Insert into invoice_items
+//       await InvoiceItem.create({
+//         store_id: storeId,
+//         invoice_id: newInvoice.id,
+//         item_id: item.id,
+//         name: item.name,
+//         sku: item.sku,
+//         quantity: itemData.quantity,
+//         price: itemData.price,
+//         total: totalAmount,
+//         tax: taxAmount,
+//         discount_rate: itemData.discount_rate,
+//         discount_type: itemData.discount_type,
+//       }, { transaction });
+
+//       invoiceTotal += totalAmount;
+//     }
+
+//     // another way to check and create, Generate unique invoice number (simple example)
+//     // Create invoice items
+
+//     // for (const item of invoice_items) {
+//     //   await InvoiceItem.create(
+//     //     {
+//     //       store_id: storeId,
+//     //       invoice_id: invoice.id,
+//     //       item_id: item.item_id,
+//     //       name: item.name,
+//     //       sku: item.sku,
+//     //       quantity: item.quantity,
+//     //       price: item.price,
+//     //       total: item.quantity * item.price,
+//     //       tax: item.tax || 0,
+//     //       discount_rate: item.discount_rate || 0,
+//     //       discount_type: item.discount_type || 'fixed',
+//     //     },
+//     //     { transaction: transaction  }
+//     //   );
+//     // }
+
+//     // Add to invoice histories
+//     await InvoiceHistory.create(
+//       {
+//         store_id: storeId,
+//         invoice_id: newInvoice.id,
+//         status: 'draft',
+//         notify: false,
+//         description: 'Invoice created.',
+//       },
+//       { transaction: transaction }
+//     );
+
+//       await transaction.commit();
+
+//       // Generate PDF and save in media table
+//       try {
+//         const pdfPath = await generateInvoicePDFHelper(newInvoice.id);
+
+//           // Ensure the file exists before accessing it
+//             if (!fs.existsSync(pdfPath)) {
+//               throw new Error(`PDF file not found at path: ${pdfPath}`);
+//             }
+                
+//         // Save PDF details in media table
+//         const media = await Media.create({
+//           disk: 'local',
+//           directory: 'invoices',
+//           filename: `invoice_${newInvoice.invoice_number}.pdf`,
+//           extension: 'pdf',
+//           mime_type: 'application/pdf',
+//           aggregate_type: 'document',
+//           size: fs.statSync(pdfPath).size,
+//           path: pdfPath, // Add the path field
+//         });
+
+//         console.log('Media created:', media);
+      
+//         // Associate media with invoice
+//         // await newInvoice.addMedia(media, { through: { tag: 'invoice_pdf' } });
+//         await Mediable.create({
+//           media_id: media.id,
+//           mediable_type: 'Invoice',
+//           mediable_id: newInvoice.id,
+//           tag: 'invoice_pdf',
+//         });
+  
+//         // Move the PDF to the media directory
+//         // No need to move the PDF file since it's already in the correct location
+//         // fs.renameSync(pdfPath, `media/${media.id}`);
+//       } catch (error) {
+//         console.log(error)
+//         logger.error(`Error generating invoice PDF: ${error.message}`);
+
+//       }
+
+//       // try {
+//       //   await sendInvoiceEmail(newInvoice, pdfPath);
+//       // } catch (emailError) {
+//       //   console.error('Email Sending Error:', emailError);
+//       //   // Decide how to handle email errors (e.g., retry, log, etc.)
+
+//       //   // Log the error
+//       //   logger.error(`Error sending invoice email: ${emailError.message}`);
+
+//       //   // Return success response even if email sending fails
+//       //   return res.status(201).json(newInvoice);
+//       // }
+
+//     return res.status(201).json(newInvoice);
+//   } catch (error) {
+//     await transaction.rollback();
+//     logger.error(`Error creating invoice: ${error.message}`);
+//     next(error);
+//   }
+// };
+
 exports.createInvoice = async (req, res, next) => {
+  // console.log("here in create invoice")
+  // console.log("params", req.params)
   const transaction = await sequelize.transaction(); // Use a transaction for consistency
   try {
     const {
@@ -57,7 +317,8 @@ exports.createInvoice = async (req, res, next) => {
 
     const storeId = req.params.store_id;
 
-    console.log(req.body.store_id)
+    // console.log("params", req.params)
+    // console.log(storeId)
 
     // NEWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW CHECK LATER
     // const {
@@ -97,7 +358,7 @@ exports.createInvoice = async (req, res, next) => {
 
     // Generate invoice number if not provided
     if (!invoice_number) {
-      const newInvoiceNumber = await generateInvoiceNumber(storeId);
+      const newInvoiceNumber = await generateInvoiceNumber(store_id);
       if (!newInvoiceNumber) {
         await transaction.rollback();
         return next({ statusCode: 404, message: 'Error in generating invoice number, Store not found' });
@@ -114,7 +375,7 @@ exports.createInvoice = async (req, res, next) => {
     const newInvoice = await Invoice.create({
       invoice_number,
       order_number,
-      status: status,
+      status: 'draft',
       invoiced_at: invoiced_at || new Date(),
       due_at: due_at || new Date(),
       amount,
@@ -909,5 +1170,25 @@ exports.getRecentInvoices = async (req, res, next) => {
   } catch (error) {
     logger.error(`Error fetching recent invoices: ${error.message}`);
     next(error);
+  }
+};
+
+exports.generateInvoice = async (req, res) => {
+  try {
+    const invoiceId = req.params.id;
+
+    // Generate the invoice PDF
+    const pdfPath = await generateInvoicePDFHelper(invoiceId);
+
+    // Send the generated PDF file as a response
+    res.download(pdfPath, (err) => {
+      if (err) {
+        logger.error('Error sending the invoice PDF:', err);
+        res.status(500).send('Error sending the invoice PDF');
+      }
+    });
+  } catch (error) {
+    logger.error('Error generating the invoice:', error);
+    res.status(500).send('Error generating the invoice');
   }
 };
