@@ -36,7 +36,8 @@ exports.signup = async (req, res, next) => {
     res.cookie('refreshToken', refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'Strict', // CSRF protection for cookies
+      // sameSite: 'Strict', // CSRF protection for cookies
+      sameSite: 'None', // CSRF protection for cookies
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     });
 
@@ -65,7 +66,8 @@ exports.login = async (req, res, next) => {
     res.cookie('refreshToken', refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'Strict', // CSRF protection for cookies
+      // sameSite: 'Strict', // CSRF protection for cookies
+      sameSite: 'None', // CSRF protection for cookies
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     });
 
