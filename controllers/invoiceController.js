@@ -452,28 +452,6 @@ exports.createInvoice = async (req, res, next) => {
       invoiceTotal += totalAmount;
     }
 
-    // another way to check and create, Generate unique invoice number (simple example)
-    // Create invoice items
-
-    // for (const item of invoice_items) {
-    //   await InvoiceItem.create(
-    //     {
-    //       store_id: storeId,
-    //       invoice_id: invoice.id,
-    //       item_id: item.item_id,
-    //       name: item.name,
-    //       sku: item.sku,
-    //       quantity: item.quantity,
-    //       price: item.price,
-    //       total: item.quantity * item.price,
-    //       tax: item.tax || 0,
-    //       discount_rate: item.discount_rate || 0,
-    //       discount_type: item.discount_type || 'fixed',
-    //     },
-    //     { transaction: transaction  }
-    //   );
-    // }
-
     // Add to invoice histories
     await InvoiceHistory.create(
       {
@@ -545,8 +523,10 @@ exports.createInvoice = async (req, res, next) => {
     return res.status(201).json(newInvoice);
   } catch (error) {
     await transaction.rollback();
-    logger.error(`Error creating invoice: ${error.message}`);
-    next(error);
+    // logger.error(`Error creating invoice: ${error.message}`);
+    // next(error);
+    console.log(error)
+    return res.status(500).send(error)
   }
 };
 
@@ -1046,7 +1026,6 @@ exports.createInvoice = async (req, res, next) => {
 
   exports.getInvoicePDF = async (req, res, next) => {
     try {
-      console.log("getInvoicePDF")
       const { store_id, invoice_id } = req.params;
   
       // Check if the user has access to this store
@@ -1076,8 +1055,6 @@ exports.createInvoice = async (req, res, next) => {
           },
         },
       });
-
-      console.log(media)
   
       if (!media || media.length === 0) {
         return res.status(404).json({ error: 'Invoice PDF not found' });
