@@ -5,29 +5,20 @@ const { Role } = require('../models');
 const seedRoles = async () => {
     try {
         const roles = [
-            {
-                "name": "admin",
-                "display_name": "Admin",
-                "description": "Admin role has full access to all resources",
-            },
-            {
-                "name": "merchant",
-                "display_name": "Merchant",
-                "description": "Merchant role has access to merchant resources",
-            },
-            {
-                "name": "customer",
-                "display_name": "Customer",
-                "description": "Customer role has access to customer resources",
-            }
+            { name: 'Admin', description: 'Full control over the platform' },
+            { name: 'Store Owner', description: 'Manage stores and operations' },
+            { name: 'Employee', description: 'Perform operational tasks' },
+            { name: 'Auditor', description: 'View-only access to reports' },
         ];
-        roles.forEach(async (role) => {
+
+        for (const role of roles) {
             await Role.create(role);
-        });
+        }
+
         console.log('Roles seeded successfully');
     } catch (err) {
-        console.error('Error seeding roles', err);
+        console.error('Error seeding roles:', err);
     }
-}
+};
 
 module.exports = { seedRoles };

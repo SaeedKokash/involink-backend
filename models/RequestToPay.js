@@ -2,16 +2,14 @@
 
 module.exports = (sequelize, DataTypes) => {
   const RequestToPay = sequelize.define('RequestToPay', {
-    id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+
     invoice_id: DataTypes.INTEGER,
-    session_id: DataTypes.INTEGER,
+    transaction_id: DataTypes.INTEGER,
+
+    reference_id: DataTypes.STRING,
+    
     msgId: DataTypes.INTEGER,
-    purpose: DataTypes.INTEGER,
-    amount: DataTypes.DOUBLE,
-    receiverType: DataTypes.INTEGER,
-    senderType: DataTypes.INTEGER,
-    extraData: DataTypes.JSON,
-    // Add a status field
+
     status: {
       type: DataTypes.ENUM('pending', 'approved', 'rejected', 'completed'),
       defaultValue: 'pending',
@@ -25,8 +23,7 @@ module.exports = (sequelize, DataTypes) => {
 
   RequestToPay.associate = (models) => {
     RequestToPay.belongsTo(models.Invoice, { foreignKey: 'invoice_id' });
-    // If you have a Session model, you can associate it here
-    // RequestToPay.belongsTo(models.Session, { foreignKey: 'session_id' });
+    RequestToPay.belongsTo(models.Transaction, { foreignKey: 'transaction_id' });
   };
 
   return RequestToPay;

@@ -4,6 +4,8 @@ const db = require("./models").sequelize;
 
 const { seedUsers } = require("./seeders/users.seed");
 const { seedRoles } = require("./seeders/role.seed");
+const { seedPermissions } = require('./seeders/permission.seed');
+const { seedRolePermissions } = require('./seeders/role-permission.seed');
 
 const DB_SYNC = process.env.DB_SYNC || "none"; // Set "none" as default if not provided
 
@@ -18,17 +20,23 @@ async function syncDatabase() {
     if (DB_SYNC === databaseSyncStatus.force) {
       await db.sync({ force: true });
       console.log("Database reset.");
+
       await seedRoles();
-      console.log("Seeded with new roles.");
+      await seedPermissions();
+      await seedRolePermissions();
       await seedUsers();
-      console.log("Seeded with new users.");
+      
+      console.log('Seeded with new data.');
+
     } else if (DB_SYNC === databaseSyncStatus.alter) {
       await db.sync({ alter: true });
       console.log("Database synced with alterations.");
+
     } else {
       await db.sync();
       console.log("Database synced without alterations.");
     }
+
     startServer();
   } catch (error) {
     console.error("Failed to sync the database:", error);
