@@ -1,74 +1,111 @@
+// models/Store.js
+
 'use strict';
 
 module.exports = (sequelize, DataTypes) => {
   const Store = sequelize.define('Store', {
     name: {
       type: DataTypes.STRING,
-      // allowNull: false,
+      allowNull: false,
+      validate: {
+        notEmpty: true,
+      },
+      comment: 'Name of the store',
     },
     enabled: {
       type: DataTypes.BOOLEAN,
+      allowNull: false,
       defaultValue: true,
+      comment: 'Whether the store is active',
     },
     street_address: {
       type: DataTypes.STRING,
+      allowNull: true,
+      comment: 'Street address of the store',
     },
     city: {
       type: DataTypes.STRING,
+      allowNull: true,
+      comment: 'City where the store is located',
     },
     zip_code: {
       type: DataTypes.STRING,
+      allowNull: true,
+      comment: 'ZIP code of the store location',
     },
     phone_number: {
       type: DataTypes.STRING,
+      allowNull: true,
+      validate: {
+        is: /^[+]?[0-9\s\-()]+$/,
+      },
+      comment: 'Contact phone number for the store',
     },
     email: {
       type: DataTypes.STRING,
+      allowNull: true,
+      validate: {
+        isEmail: true,
+      },
+      comment: 'Contact email for the store',
     },
 
-    logo: {
-      type: DataTypes.STRING,
-    }, // should this be a foreign key to media table??
-
   }, {
-    tableName: 'store',
+    tableName: 'stores',
     timestamps: true,
     paranoid: true,
     underscored: true,
+    indexes: [
+      {
+        unique: true,
+        fields: ['name', 'deleted_at'],
+        name: 'stores_name_deleted_at_unique',
+      },
+    ],
   });
 
-  // store has relations with: 
-  // 1. has many to many relation with media through store_media table, store_id is the foreign key
-  // 2. has one to many relation with item table, store_id is the foreign key
-  // 3. has one to many relation with invoiceItem table, store_id is the foreign key
-  // 4. has one to many relation with invoices table, store_id is the foreign key
-  // 5. has one to many relation with accounts table, store_id is the foreign key
-  // 6. has one to many relation with transactions table, store_id is the foreign key
-  // 7. has one to many relation with contacts table, store_id is the foreign key
-  // 8. has many to many relation with user through user_store_access table, store_id is the foreign key
-  
+  // Store Associations
   Store.associate = (models) => {
+    // Many-to-Many: Store <-> Media through StoreMedia
     Store.belongsToMany(models.Media, {
       through: models.StoreMedia,
-      foreignKey: 'store_id',    // The foreign key in 'StoreMedia' pointing to 'Store'
-      otherKey: 'media_id',   // The foreign key in 'StoreMedia' pointing to 'Media'
-      constraints: false,
+      as: 'Media',
+      foreignKey: 'store_id',
+      otherKey: 'media_id',
+      constraints: true,
+      onDelete: 'CASCADE',
+      onUpdate: 'CASCADE',
     });
 
-    Store.hasMany(models.Item, { foreignKey: 'store_id' });
-    Store.hasMany(models.InvoiceItem, { foreignKey: 'store_id' });
-    Store.hasMany(models.Invoice, { foreignKey: 'store_id' });
-    Store.hasMany(models.Account, { foreignKey: 'store_id' });
-    Store.hasMany(models.Transaction, { foreignKey: 'store_id' });
-    Store.hasMany(models.Contact, { foreignKey: 'store_id' });
+    // One-to-Many: Store has many Items
+    Store.hasMany(models.Item, { foreignKey: 'store_id', as: 'Items' });
 
+    // One-to-Many: Store has many InvoiceItems
+    Store.hasMany(models.InvoiceItem, { foreignKey: 'store_id', as: 'InvoiceItems' });
+
+    // One-to-Many: Store has many Invoices
+    Store.hasMany(models.Invoice, { foreignKey: 'store_id', as: 'Invoices' });
+
+    // One-to-Many: Store has many Accounts
+    Store.hasMany(models.Account, { foreignKey: 'store_id', as: 'Accounts' });
+
+    // One-to-Many: Store has many Transactions
+    Store.hasMany(models.Transaction, { foreignKey: 'store_id', as: 'Transactions' });
+
+    // One-to-Many: Store has many Contacts
+    Store.hasMany(models.Contact, { foreignKey: 'store_id', as: 'Contacts' });
+
+    // Many-to-Many: Store <-> User through UserStore
     Store.belongsToMany(models.User, {
-      through: models.UserStoreAccess,
-      foreignKey: 'store_id',    // The foreign key in 'UserStoreAccess' pointing to 'Store'
-      otherKey: 'user_id',   // The foreign key in 'UserStoreAccess' pointing to 'User'
-      constraints: false,
+      through: models.UserStore,
+      as: 'Users',
+      foreignKey: 'store_id',
+      otherKey: 'user_id',
+      constraints: true,
+      onDelete: 'CASCADE',
+      onUpdate: 'CASCADE',
     });
-  }
+  };
 
   return Store;
 };

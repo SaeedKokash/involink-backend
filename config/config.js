@@ -35,4 +35,19 @@ module.exports = {
       },
     },
   },
+  azure: {
+    port: "5432",
+    logLevel: process.env.LOG_LEVEL || "warn",
+    username: process.env.DB_DEV_USER_AZURE,
+    password: process.env.DB_DEV_PASS_AZURE,
+    database: process.env.DB_DEV_NAME_AZURE,
+    host: process.env.DB_HOST_AZURE,
+    dialect: "postgres",
+    dialectOptions: {
+      ssl: {
+        require: true,
+        rejectUnauthorized: false,
+      },
+    },
+  }
 };

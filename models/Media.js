@@ -1,53 +1,123 @@
 // models/Media.js
 
 module.exports = (sequelize, DataTypes) => {
-    const Media = sequelize.define('Media', {
-      disk: DataTypes.STRING,
-      directory: DataTypes.STRING,
-      filename: DataTypes.STRING,
-      extension: DataTypes.STRING,
-      mime_type: DataTypes.STRING,
-      aggregate_type: DataTypes.STRING,
-      size: DataTypes.INTEGER,
+  const Media = sequelize.define('Media', {
+    disk: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      validate: {
+        notEmpty: true,
+      },
+      comment: 'Disk/storage identifier, e.g., "local", "s3"',
+    },
+    directory: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      validate: {
+        notEmpty: true,
+      },
+      comment: 'Directory path where the media is stored',
+    },
+    filename: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      validate: {
+        notEmpty: true,
+      },
+      comment: 'Name of the media file',
+    },
+    extension: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      validate: {
+        notEmpty: true,
+      },
+      comment: 'File extension, e.g., "jpg", "png"',
+    },
+    mime_type: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      validate: {
+        notEmpty: true,
+      },
+      comment: 'MIME type of the media, e.g., "image/jpeg"',
+    },
+    aggregate_type: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      comment: 'Aggregate category or type for the media',
+    },
+    size: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      validate: {
+        min: 0,
+      },
+      comment: 'Size of the media file in bytes',
+    },
+    path: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      validate: {
+        isUrl: true,
+      },
+      comment: 'URL or path to access the media',
+    },
+  }, {
+    tableName: 'media',
+    timestamps: true,
+    paranoid: true,
+    underscored: true,
+    indexes: [
+      {
+        unique: true,
+        fields: ['disk', 'directory', 'filename', 'deleted_at'],
+        name: 'media_disk_directory_filename_deleted_at_unique',
+      },
+    ],
+  });
 
-      path: DataTypes.STRING, // Add this line, do we need this?
-
-    }, {
-      tableName: 'media',
-      timestamps: true,
-      paranoid: true,
-      underscored: true,
+  Media.associate = (models) => {
+    Media.belongsToMany(models.Item, {
+      through: models.ItemMedia,
+      as: 'Items',
+      foreignKey: 'media_id',
+      otherKey: 'item_id',
+      constraints: true,
+      onDelete: 'CASCADE',
+      onUpdate: 'CASCADE',
     });
-  
-    // media has relation with: 
-    // 1. many to many relation with Item through item_media (item_id, media_id)
-    // 2. many to many relation with store through store_media (store_id, media_id)
-    // 3. many to many relation with user through user_media (user_id, media_id)
 
-    Media.associate = (models) => {
-      Media.belongsToMany(models.Item, {
-        through: models.ItemMedia,
-        foreignKey: 'media_id',    // The foreign key in 'ItemMedia' pointing to 'Media'
-        otherKey: 'item_id',   // The foreign key in 'ItemMedia' pointing to 'Item'
-        constraints: false,
-      });
+    Media.belongsToMany(models.Store, {
+      through: models.StoreMedia,
+      as: 'Stores',
+      foreignKey: 'media_id',
+      otherKey: 'store_id',
+      constraints: true,
+      onDelete: 'CASCADE',
+      onUpdate: 'CASCADE',
+    });
 
-      Media.belongsToMany(models.Store, {
-        through: models.StoreMedia,
-        foreignKey: 'media_id',    // The foreign key in 'StoreMedia' pointing to 'Media'
-        otherKey: 'store_id',   // The foreign key in 'StoreMedia' pointing to 'Store'
-        constraints: false,
-      });
+    Media.belongsToMany(models.User, {
+      through: models.UserMedia,
+      as: 'Users',
+      foreignKey: 'media_id',
+      otherKey: 'user_id',
+      constraints: true,
+      onDelete: 'CASCADE',
+      onUpdate: 'CASCADE',
+    });
 
-      Media.belongsToMany(models.User, {
-        through: models.UserMedia,
-        foreignKey: 'media_id',    // The foreign key in 'UserMedia' pointing to 'Media'
-        otherKey: 'user_id',   // The foreign key in 'UserMedia' pointing to 'User'
-        constraints: false,
-      });
-    }
-
-  
-    return Media;
+    Media.belongsToMany(models.Invoice, {
+      through: models.InvoiceMedia,
+      as: 'Invoices',
+      foreignKey: 'media_id',
+      otherKey: 'invoice_id',
+      constraints: true,
+      onDelete: 'CASCADE',
+      onUpdate: 'CASCADE',
+    });
   };
-  
+
+  return Media;
+};

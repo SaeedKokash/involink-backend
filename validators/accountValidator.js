@@ -2,22 +2,25 @@ const Joi = require('joi');
 
 exports.validateAccount = (req, res, next) => {
   const schema = Joi.object({
-    name: Joi.string().min(2).required(),
-    type: Joi.string().valid('asset', 'liability', 'equity', 'revenue', 'expense').required(),
-    number: Joi.string().allow(''),
-    currency_code: Joi.string().allow(''),
-    opening_balance: Joi.number().min(0).required(),
-    bank_name: Joi.string().allow(''),
-    bank_phone: Joi.string().allow(''),
-    bank_address: Joi.string().allow(''),
-    enabled: Joi.boolean(),
-    store_id: Joi.number().integer().required(),
+    store_id: Joi.number().required(),
+    name: Joi.string().required(),
+    BICCode: Joi.string().allow(null, ''),
+    bank_account_number: Joi.string().allow(null, ''),
+    IBAN: Joi.string().allow(null, ''),
+    alias_type: Joi.string().valid('alias', 'iban', 'mobile').required(),
+    alias_value: Joi.string().required(),
+    currency_code: Joi.string().valid('JOD', 'USD').default('JOD'),
+    bank_name: Joi.string().allow(null, ''),
+    bank_phone: Joi.string().allow(null, ''),
+    bank_street_address: Joi.string().allow(null, ''),
+    bank_city: Joi.string().allow(null, ''),
+    bank_zip_code: Joi.string().allow(null, ''),
+    enabled: Joi.boolean()
   });
 
-  const { error } = schema.validate(req.body, { abortEarly: false });
+  const { error } = schema.validate(req.body);
   if (error) {
-    const messages = error.details.map((detail) => detail.message);
-    return res.status(400).json({ error: messages.join(', ') });
+    return res.status(400).json({ error: error.details[0].message });
   }
   next();
 };

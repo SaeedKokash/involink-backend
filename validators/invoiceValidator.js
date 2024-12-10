@@ -2,47 +2,23 @@ const Joi = require('joi');
 
 exports.validateInvoice = (req, res, next) => {
   const schema = Joi.object({
+    store_id: Joi.number().required(),
+    contact_id: Joi.number().allow(null),
     invoice_number: Joi.string().required(),
-    order_number: Joi.string().allow(''),
-    status: Joi.string().valid('draft', 'sent', 'paid', 'overdue').required(),
-    invoiced_at: Joi.date().required(),
-    due_at: Joi.date().required(),
+    order_number: Joi.string().allow(null, ''),
+    status: Joi.string().valid('draft', 'sent', 'paid', 'overdue', 'cancelled').default('draft'),
+    invoiced_at: Joi.date().allow(null),
+    due_at: Joi.date().allow(null),
+    paid_at: Joi.date().allow(null),
     amount: Joi.number().min(0).required(),
-    currency_code: Joi.string().required(),
-    currency_rate: Joi.number().min(0).required(),
-    contact_id: Joi.number().integer().required(),
-    contact_name: Joi.string().required(),
-    contact_email: Joi.string().email().required(),
-    contact_tax_number: Joi.string().allow(''),
-    contact_phone: Joi.string().required(),
-    contact_address: Joi.string().required(),
-    notes: Joi.string().allow(''),
-    footer: Joi.string().allow(''),
-    // store_id: Joi.number().integer().required(),
-    invoice_items: Joi.array().items(
-      Joi.object({
-        name: Joi.string().allow(''),
-        sku: Joi.string().allow(''),
-        item_id: Joi.number().integer().required(),
-        quantity: Joi.number().min(1).required(),
-        price: Joi.number().min(0).required(),
-        discount_rate: Joi.number().min(0).allow(0),
-        discount_type: Joi.string().valid('fixed', 'percentage').required(),
-        taxes: Joi.array().items(Joi.number().integer()).allow(null),
-      })
-    ).min(1).required(),
+    currency_code: Joi.string().allow(null, ''),
+    notes: Joi.string().allow(null, ''),
+    footer: Joi.string().allow(null, ''),
   });
 
-  const { error } = schema.validate(req.body, { abortEarly: false });
+  const { error } = schema.validate(req.body);
   if (error) {
-    const messages = error.details.map((detail) => detail.message);
-    return res.status(400).json({ error: messages.join(', ') });
+    return res.status(400).json({ error: error.details[0].message });
   }
   next();
 };
-
-// "amount" is required, 
-// "invoice_items[0].name" is not allowed, 
-// "invoice_items[0].sku" is not allowed, 
-// "invoice_items[1].name" is not allowed, 
-// "invoice_items[1].sku" is not allowed

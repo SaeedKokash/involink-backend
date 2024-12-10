@@ -13,6 +13,7 @@ const databaseSyncStatus = {
   force: "force",
   alter: "alter",
   none: "none",
+  azureseed: "azureseed"
 };
 
 async function syncDatabase() {
@@ -26,26 +27,36 @@ async function syncDatabase() {
       await seedRolePermissions();
       await seedUsers();
       
-      console.log('Seeded with new data.');
+      console.log('\x1b[33m%s\x1b[0m', 'Seeded with new data.');
+
+    } else if (DB_SYNC === databaseSyncStatus.azureseed) {
+      await db.sync({ alter: true });
+
+      await seedRoles();
+      await seedPermissions();
+      await seedRolePermissions();
+      await seedUsers();
+      console.log('\x1b[33m%s\x1b[0m', 'Database synced with alterations.');
 
     } else if (DB_SYNC === databaseSyncStatus.alter) {
       await db.sync({ alter: true });
-      console.log("Database synced with alterations.");
+
+      console.log('\x1b[33m%s\x1b[0m', 'Database synced with alterations.');
 
     } else {
       await db.sync();
-      console.log("Database synced without alterations.");
+      console.log('\x1b[33m%s\x1b[0m', 'Database synced without alterations.');
     }
 
     startServer();
   } catch (error) {
-    console.error("Failed to sync the database:", error);
+    console.error('\x1b[31m%s\x1b[0m', 'Failed to sync the database:', error);
   }
 }
 
 function startServer() {
   server.start();
-  console.log("Server running and connected to database.");
+  console.log('\x1b[32m%s\x1b[0m', 'Server running and connected to database.');
 }
 
 // Only sync the database if DB_SYNC is set to "force" or "alter"

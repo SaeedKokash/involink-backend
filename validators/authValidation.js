@@ -4,8 +4,13 @@ exports.validateSignup = (req, res, next) => {
   const schema = Joi.object({
     name: Joi.string().min(3).required(),
     email: Joi.string().email().required(),
+    phone: Joi.string().pattern(new RegExp("^[0-9]{10}$")),
     password: Joi.string().min(6).required(),
-    // role: Joi.string().valid("merchant", "customer").required(),
+    remember_token: Joi.string().allow(null, ""),
+    last_logged_in_at: Joi.date().allow(null, ""),
+    locale: Joi.string().allow(null, ""),
+    landing_page: Joi.string().allow(null, ""),
+    enabled: Joi.boolean().default(true),
   });
 
   const { error } = schema.validate(req.body, { abortEarly: false });
