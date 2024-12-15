@@ -61,14 +61,24 @@ module.exports = (sequelize, DataTypes) => {
     enabled: {
       type: DataTypes.BOOLEAN,
       allowNull: false,
-      defaultValue: true,
+      defaultValue: false,
       comment: 'Whether the user account is active',
     },
-    isVerifiedEmail: {
+    email_verified: {
       type: DataTypes.BOOLEAN,
       allowNull: false,
       defaultValue: false,
       comment: 'Whether the user email is verified',
+    },
+    email_verification_token: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      comment: 'Token for email verification',
+    },
+    email_verification_token_expiry: {
+      type: DataTypes.DATE,
+      allowNull: true,
+      comment: 'Expiry date for email verification token',
     },
     isVerifiedNumber: {
       type: DataTypes.BOOLEAN,

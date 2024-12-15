@@ -1,7 +1,6 @@
 'use strict';
 
-const { name } = require('ejs');
-const { User, Role, UserRole } = require('../models');
+const { User, Role } = require('../models');
 
 const seedUsers = async () => {
     try {
@@ -11,7 +10,7 @@ const seedUsers = async () => {
                 name: 'Admin User',
                 email: 'admin@involink.com',
                 phone_number: '0710000000',
-                password: 'admin123',
+                password: 'password',
                 locale: 'en',
                 landing_page: '/dashboard',
                 enabled: true,
@@ -21,7 +20,7 @@ const seedUsers = async () => {
                 name: 'Merchant User',
                 email: 'merchant@involink.com',
                 phone_number: '0720000000',
-                password: 'merchant123',
+                password: 'password',
                 locale: 'en',
                 landing_page: '/stores',
                 enabled: true,
@@ -31,7 +30,7 @@ const seedUsers = async () => {
                 name: 'Employee User',
                 email: 'employee@involink.com',
                 phone_number: '0730000000',
-                password: 'employee123',
+                password: 'password',
                 locale: 'en',
                 landing_page: '/tasks',
                 enabled: true,
@@ -41,7 +40,7 @@ const seedUsers = async () => {
                 name: 'Auditor User',
                 email: 'auditor@involink.com',
                 phone_number: '0740000000',
-                password: 'auditor123',
+                password: 'password',
                 locale: 'en',
                 landing_page: '/reports',
                 enabled: true,
@@ -51,7 +50,7 @@ const seedUsers = async () => {
                 name: 'Customer User',
                 email: 'customer@involink.com',
                 phone_number: '0750000000',
-                password: 'customer123',
+                password: 'password',
                 locale: 'en',
                 landing_page: '/profile',
                 enabled: true,
