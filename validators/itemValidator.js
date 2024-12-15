@@ -1,23 +1,20 @@
 const Joi = require('joi');
 
 exports.validateItem = (req, res, next) => {
-  const schema = Joi.object({
-    name: Joi.string().min(2).required(),
-    sku: Joi.string().min(2).required(),
-    description: Joi.string().allow(''),
-    sale_price: Joi.number().min(0).required(),
-    purchase_price: Joi.number().min(0).required(),
-    quantity: Joi.number().integer().min(0).required(),
-    tax_id: Joi.number().integer().allow(null),
-    enabled: Joi.boolean(),
-    // store_id: Joi.number().integer().required(),
-    // category_id: Joi.number().integer().allow(null), // Future use
-  });
+    const schema = Joi.object({
+        store_id: Joi.number().required(),
+        name: Joi.string().required(),
+        description: Joi.string().allow(null, ''),
+        sku: Joi.string().allow(null, ''),
+        purchase_price: Joi.number().min(0).allow(null),
+        sale_price: Joi.number().min(0).required(),
+        stock_quantity: Joi.number().min(0).allow(null),
+        enabled: Joi.boolean(),
+    });
 
-  const { error } = schema.validate(req.body, { abortEarly: false });
-  if (error) {
-    const messages = error.details.map((detail) => detail.message);
-    return next({ statusCode: 400, messages });
-  }
-  next();
-}
+    const { error } = schema.validate(req.body);
+    if (error) {
+        return res.status(400).json({ error: error.details[0].message });
+    }
+    next();
+};

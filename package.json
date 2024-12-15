@@ -6,10 +6,16 @@
   "scripts": {
     "start": "NODE_ENV=production node index.js",
     "heroku": "set NODE_ENV=production&&nodemon index.js",
+    "azure": "NODE_ENV=azure nodemon index.js",
+    "azureforce": "NODE_ENV=azure DB_SYNC=force nodemon index.js",
+
+    "azureseed": "NODE_ENV=azure DB_SYNC=azureseed nodemon index.js",
+
     "dev": "NODE_ENV=development nodemon index.js",
     "test": "NODE_ENV=test mocha",
     "migrate": "npx sequelize-cli db:migrate",
-    "down": "npx sequelize-cli db:migrate:undo"
+    "down": "npx sequelize-cli db:migrate:undo",
+    "force": "DB_SYNC=force node index.js"
   },
   "keywords": [],
   "author": "",

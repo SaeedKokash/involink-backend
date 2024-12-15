@@ -2,23 +2,27 @@ const Joi = require('joi');
 
 exports.validateContact = (req, res, next) => {
   const schema = Joi.object({
-    name: Joi.string().min(2).required(),
-    email: Joi.string().email().required(),
-    phone: Joi.string().required(),
-    type: Joi.string().valid('customer', 'supplier').required(),
-    tax_number: Joi.string().allow(''),
-    address: Joi.string().allow(''),
-    website: Joi.string().allow(''), //.uri(),
-    currency_code: Joi.string().allow(''),
+    store_id: Joi.number().required(),
+    user_id: Joi.number().allow(null),
+    type: Joi.string().valid('customer', 'supplier', 'other').default('other'),
+    name: Joi.string().required(),
+    email: Joi.string().email(),
+    tax_number: Joi.string().allow(null, ''),
+    phone: Joi.string().allow(null, ''),
+    street_address: Joi.string().allow(null, ''),
+    city: Joi.string().allow(null, ''),
+    zip_code: Joi.string().allow(null, ''),
+    website: Joi.string().uri().allow(null, ''),
     enabled: Joi.boolean(),
-    reference: Joi.string().allow(''),
-    // store_id: Joi.number().integer().required(),
+    reference: Joi.string().allow(null, ''),
+    notes: Joi.string().allow(null, ''),
+    alias_type: Joi.string().valid('alias', 'iban', 'mobile').allow(null),
+    alias_value: Joi.string().allow(null, ''),
   });
 
-  const { error } = schema.validate(req.body, { abortEarly: false });
+  const { error } = schema.validate(req.body);
   if (error) {
-    const messages = error.details.map((detail) => detail.message);
-    return res.status(400).json({ error: messages.join(', ') });
+    return res.status(400).json({ error: error.details[0].message });
   }
   next();
 };

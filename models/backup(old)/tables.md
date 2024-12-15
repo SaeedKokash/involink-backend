@@ -1,4 +1,4 @@
-Here's a brief overview of each table and its role in your MVP:
+# Here's a brief overview of each table and its role in your MVP
 
 accounts
 
