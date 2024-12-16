@@ -95,6 +95,8 @@ module.exports = (sequelize, DataTypes) => {
     // One-to-Many: Store has many Contacts
     Store.hasMany(models.Contact, { foreignKey: 'store_id', as: 'Contacts' });
 
+    Store.hasMany(models.TaxRates, { foreignKey: 'store_id', as: 'TaxRates' });
+
     // Many-to-Many: Store <-> User through UserStore
     Store.belongsToMany(models.User, {
       through: models.UserStore,

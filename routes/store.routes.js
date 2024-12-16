@@ -1,29 +1,48 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router({ mergeParams: true });
+const multer = require('multer');
+const { checkRole, checkPermission } = require('../middlewares/authMiddleware');
 
-const storeController = require('../controllers/storeController');
+const upload = multer();
 
-const { authorizeStoreAccess } = require('../middlewares/authorization');
+const {
+  createStore,
+  getStoresByUser,
+  getStoreById,
+  updateStore,
+  deleteStore,
+  restoreStore,
+  addUserToStoreAsEmployee
+} = require("../controllers/storeController");
 
-const { createInvoice, getInvoicesByStore, getInvoiceById, updateInvoice, deleteInvoice, generateInvoicePDF, getInvoicePDF, getInvoiceSummary, getRecentInvoices } = require('../controllers/invoiceController');
+const { authorizeStoreAccess } = require("../middlewares/authorization");
 
-// CRUD operations for Invoices
-router.get('/summary', getInvoiceSummary);
-router.get('/recent', getRecentInvoices);
+const {
+  getInvoiceSummary,
+  getRecentInvoices,
+} = require("../controllers/invoiceController");
+
+const { validateCreateStore, validateUpdateStore } = require("../validators/storeValidator");
 
 // CRUD operations for Stores
-router.post('/', storeController.createStore);
+router.post("/", upload.single('logo'), validateCreateStore, createStore);
 
-router.get('/', storeController.getStoresByUser);
+router.get("/", getStoresByUser);
 
-router.get('/:store_id', authorizeStoreAccess, storeController.getStoreById);
+router.get("/:store_id", authorizeStoreAccess, getStoreById);
 
-router.put('/:store_id', authorizeStoreAccess, storeController.updateStore);
+router.put("/:store_id", upload.single('logo'), validateUpdateStore, authorizeStoreAccess, checkPermission('update_store'), updateStore);
 
-router.delete('/:store_id', authorizeStoreAccess, storeController.deleteStore);
+router.delete("/:store_id", authorizeStoreAccess, deleteStore);
+   
+router.post("/:store_id/restore", authorizeStoreAccess, restoreStore);
 
-router.post('/:store_id', authorizeStoreAccess, storeController.restoreStore);
+// needs alot of work by adding roles and permissions correctly.
+router.post('/:storeId/users/:userId/employee', addUserToStoreAsEmployee);
 
+
+// CRUD operations for Invoices
+router.get("/summary", getInvoiceSummary);
+router.get("/recent", getRecentInvoices);
 
 module.exports = router;
-

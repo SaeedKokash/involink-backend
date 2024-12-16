@@ -6,20 +6,22 @@ const { UserStore, Item, Contact, Account, Tax, Invoice, RequestToPay } = requir
  */
 exports.authorizeStoreAccess = async (req, res, next) => {
   try {
-    const userId = req.user.id;
-    const storeId = req.params.store_id || req.body.store_id;
+    const user = req.user;
+    const storeId = req.params.store_id;
 
     if (!storeId) {
       return res.status(400).json({ error: 'Store ID is required' });
     }
 
-    // Check if user has access to the store
-    const hasAccess = await req.user.hasStore(storeId);
-    console.log('userStore', hasAccess);
+    const userStore = await UserStore.findOne({
+      where: { user_id: user.id, store_id: storeId },
+    });
 
-    if (!hasAccess) {
-      return res.status(403).json({ error: 'You are not authorized to access this store' });
+    if (!userStore) {
+      return res.status(403).json({ error: 'You do not have access to this store.' });
     }
+
+    req.userStore = userStore;
 
     next();
   } catch (error) {

@@ -8,7 +8,7 @@ module.exports = (sequelize, DataTypes) => {
       validate: {
         notEmpty: true,
       },
-      comment: 'Type of alias, e.g., "email", "username"',
+      comment: 'Type of alias, e.g., "email", "alias", "phone"',
     },
     value: {
       type: DataTypes.STRING,

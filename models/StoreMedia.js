@@ -24,7 +24,14 @@ module.exports = (sequelize, DataTypes) => {
       onUpdate: 'CASCADE',
       primaryKey: true,
     },
-
+    url: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      validate: {
+        isUrl: true,
+      },
+      comment: 'URL to the media resource',
+    },
     tag: {
       type: DataTypes.STRING,
       allowNull: true,

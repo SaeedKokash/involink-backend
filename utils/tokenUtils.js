@@ -46,6 +46,8 @@ exports.signRefreshToken = async (userWithRoles, transaction) => {
     { expiresIn: '7d' } // 7-day expiration for refresh token
   );
 
+  console.log('refreshToken', refreshToken);
+
   // Store the refresh token in the database within the transaction
   logger.info(`Creating refresh token in DB for user ID: ${userWithRoles.id}`);
   await RefreshToken.create(

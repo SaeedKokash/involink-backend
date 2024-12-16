@@ -17,9 +17,10 @@ const { authenticate } = require("../middlewares/authMiddleware");
 const { authorizeStoreAccess } = require('../middlewares/authorization');
 
 router.use("/auth", authRoutes);
-router.use("/users", authenticate, userRoutes);
 
+router.use("/users", authenticate, userRoutes);
 router.use("/stores", authenticate, storeRoutes);
+
 router.use('/stores/:store_id/items', authenticate, authorizeStoreAccess, itemRoutes);
 router.use('/stores/:store_id/accounts', authenticate, authorizeStoreAccess, accountRoutes);
 router.use('/stores/:store_id/contacts', authenticate, authorizeStoreAccess, contactRoutes);
