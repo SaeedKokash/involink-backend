@@ -1,109 +1,123 @@
 const logger = require('../config/logger');
 const { verifyToken } = require('../utils/tokenUtils');
-const { User, Role, UserStore } = require('../models');
+const { User, Role, Permission } = require('../models');
 
-// Middleware to authenticate user
+// Middleware to ensure the user is authenticated and roles/permissions are attached to the request
 exports.authenticate = async (req, res, next) => {
   try {
     const authHeader = req.headers.authorization;
+
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
       logger.warn('No token provided');
-      return next({ statusCode: 401, message: 'Authorization header missing or invalid.' });
+      return res.status(401).json({ message: 'Authorization header missing or invalid' });
     }
 
     const token = authHeader.split(' ')[1];
     const decoded = await verifyToken(token, process.env.JWT_SECRET);
 
-    const user = await User.findByPk(decoded.id, { 
+    const user = await User.findByPk(decoded.id, {
       include: [
-      {
-        model: Role,
-        as: 'Roles',
-        attributes: ['name'],
-        through: { attributes: [] }
+        {
+          model: Role,
+          as: 'Roles',
+          attributes: ['name'],
+          through: {
+            attributes: [],
+          },
+          include: [
+            {
+              model: Permission,
+              as: 'Permissions',
+              attributes: ['name'],
+              through: {
+                attributes: [],
+              },
+            },
+          ],
+        },
+      ],
+    });
+
+    if (!user) {
+      return res.status(401).json({ message: 'User not found' });
+    }
+
+    // Flatten permissions
+    const permissionSet = new Set();
+    const permissions = [];
+    for (const role of user.Roles) {
+      for (const permission of role.Permissions) {
+        if (!permissionSet.has(permission.name)) {
+          permissionSet.add(permission.name);
+          permissions.push(permission.name);
+        }
       }
-    ]
-    });
-    if (!user) return next({ statusCode: 401, message: 'User not found!' });
-    req.user = user;
-
-    // Fetch associated stores
-    const userStores = await UserStore.findAll({
-      where: { user_id: req.user.id },
-      // include: [{ model: Store }],
-    });
-
-    // const stores = userStores.map(userStore => console.log(userStore.store_id));
-
-    req.user.stores = userStores.map(us => us.store_id);
-
-    logger.info(`User ${decoded.id} authenticated successfully`);
-    next();
-  } catch (err) {
-    logger.warn(`Token verification failed: ${err.message}`);
-    next({ statusCode: 401, message: 'Invalid or expired token!' });
-  }
-};
-
-// Middleware to restrict access to specific roles
-
-// Version 1
-// exports.authorize = (requiredRole) => (req, res, next) => {
-//   if (req.user.Roles.some(role => role.name === requiredRole)) {
-//     next();
-//   } else {
-//     logger.warn(`User ${req.user.id} is not authorized to access this resource`);
-//     next({ statusCode: 403, message: 'You are not authorized to access this resource' })
-//   }
-// };
-
-// Version 2
-exports.authorize = (requiredRole) => async (req, res, next) => {
-  try {
-    const user = req.user;
-    const roles = await user.getRoles({ attributes: ['name'] });
-    if (roles.some(role => role.name === requiredRole)) {
-      next();
-    } else {
-      logger.warn(`User ${user.id} is not authorized to access this resource`);
-      next({ statusCode: 403, message: 'You are not authorized to access this resource' });
     }
-  } catch (err) {
-    logger.error(`Error authorizing user: ${err.message}`);
-    next(err);
-  }
-};
 
-// Version 3
-// exports.authorize = (requiredRoles = []) => {
-//   return (req, res, next) => {
-//     const userRoles = req.user.Roles.map((role) => role.name);
-
-//     const hasRole = requiredRoles.some((role) => userRoles.includes(role));
-
-//     if (!hasRole) {
-//       return res.status(403).json({ message: 'Forbidden: Access is denied.' });
-//     }
-
-//     next();
-//   };
-// };
+    const roles = user.Roles.map((role) => role.name);
     
-// Middleware to handle refresh tokens
-exports.refreshToken = async (req, res, next) => {
-  try {
-    const { refreshToken } = req.body;
-    if (!refreshToken) {
-      logger.warn('No refresh token provided');
-      throw createError(401, 'Refresh token is required!');
-    }
+    user.permissions = permissions; // Store only the permission names for quick checks
+    user.roles = roles; // Store only the role names for quick checks
+    req.user = user; 
 
-    const decoded = await verifyToken(refreshToken, process.env.JWT_REFRESH_SECRET);
-    req.user = decoded; // Attach user data to request
     next();
-  } catch (err) {
-    logger.warn(`Refresh token verification failed: ${err.message}`);
-    next(createError(401, 'Invalid or expired refresh token!'));
+  } catch (error) {
+    logger.warn(`Authentication failed: ${error.message}`);
+    return res.status(401).json({ message: 'Invalid or expired token' });
   }
+};
+
+// Middleware to check if the user has at least one of the specified roles
+exports.checkRole = (...requiredRoles) => {
+  return (req, res, next) => {
+    try {
+      const user = req.user;
+
+      if (!user) {
+        return res.status(403).json({ message: 'User not found' });
+      }
+
+      const userRoles = user.Roles.map((role) => role.name);
+
+      // Check if user has at least one of the required roles
+      const hasRequiredRole = requiredRoles.some((role) => userRoles.includes(role));
+
+      if (hasRequiredRole) {
+        return next();
+      } else {
+        logger.warn(`User ${user.id} does not have the required role(s): ${requiredRoles.join(', ')}`);
+        return res.status(403).json({ message: 'Access denied: Insufficient role' });
+      }
+    } catch (error) {
+      logger.error(`Error checking role: ${error.message}`);
+      return res.status(500).json({ message: 'Internal server error' });
+    }
+  };
+};
+
+// Middleware to check if the user has a specific permission
+exports.checkPermission = (...requiredPermissions) => {
+  return (req, res, next) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(403).json({ message: 'User not found' });
+      }
+
+      // user.permissions is an array of permission names strings
+      const userPermissions = new Set(user.permissions);
+      const hasRequiredPermission = requiredPermissions.some(permission => userPermissions.has(permission));
+
+      if (hasRequiredPermission) {
+        return next();
+      } else {
+        logger.warn(`User ${user.id} does not have the required permission(s): ${requiredPermissions.join(', ')}`);
+        return res.status(403).json({ message: 'Access denied: Insufficient permissions' });
+      }
+    } catch (error) {
+      logger.error(`Error checking permission: ${error.message}`);
+      return res.status(500).json({ message: 'Internal server error' });
+    }
+  };
 };
 

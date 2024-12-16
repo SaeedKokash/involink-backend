@@ -13,7 +13,7 @@ const accountRoutes = require("./account.routes");
 const contactRoutes = require("./contact.routes");
 const taxRoutes = require("./tax.routes");
 
-const { authenticate, authorize } = require("../middlewares/authMiddleware");
+const { authenticate } = require("../middlewares/authMiddleware");
 const { authorizeStoreAccess } = require('../middlewares/authorization');
 
 router.use("/auth", authRoutes);

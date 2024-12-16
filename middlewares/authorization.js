@@ -9,12 +9,15 @@ exports.authorizeStoreAccess = async (req, res, next) => {
     const userId = req.user.id;
     const storeId = req.params.store_id || req.body.store_id;
 
-    // Check if user has access to the store
-    const userStore = await UserStore.findOne({
-      where: { user_id: userId, store_id: storeId },
-    });
+    if (!storeId) {
+      return res.status(400).json({ error: 'Store ID is required' });
+    }
 
-    if (!userStore) {
+    // Check if user has access to the store
+    const hasAccess = await req.user.hasStore(storeId);
+    console.log('userStore', hasAccess);
+
+    if (!hasAccess) {
       return res.status(403).json({ error: 'You are not authorized to access this store' });
     }
 

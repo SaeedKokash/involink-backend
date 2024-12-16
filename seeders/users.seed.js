@@ -14,6 +14,7 @@ const seedUsers = async () => {
                 locale: 'en',
                 landing_page: '/dashboard',
                 enabled: true,
+                email_verified: true,
             },
             {
                 role: 'Merchant',
@@ -24,6 +25,7 @@ const seedUsers = async () => {
                 locale: 'en',
                 landing_page: '/stores',
                 enabled: true,
+                email_verified: true,
             },
             {
                 role: 'Employee',
@@ -34,16 +36,7 @@ const seedUsers = async () => {
                 locale: 'en',
                 landing_page: '/tasks',
                 enabled: true,
-            },
-            {
-                role: 'Auditor',
-                name: 'Auditor User',
-                email: 'auditor@involink.com',
-                phone_number: '0740000000',
-                password: 'password',
-                locale: 'en',
-                landing_page: '/reports',
-                enabled: true,
+                email_verified: true,
             },
             {
                 role: 'Customer',
@@ -54,6 +47,7 @@ const seedUsers = async () => {
                 locale: 'en',
                 landing_page: '/profile',
                 enabled: true,
+                email_verified: true,
             }
         ];
 
@@ -67,6 +61,7 @@ const seedUsers = async () => {
                 locale: user.locale,
                 landing_page: user.landing_page,
                 enabled: user.enabled,
+                email_verified: user.email_verified,
             });
 
             // Assign role to user
