@@ -8,9 +8,7 @@
     "heroku": "set NODE_ENV=production&&nodemon index.js",
     "azure": "NODE_ENV=azure nodemon index.js",
     "azureforce": "NODE_ENV=azure DB_SYNC=force nodemon index.js",
-
     "azureseed": "NODE_ENV=azure DB_SYNC=azureseed nodemon index.js",
-
     "dev": "NODE_ENV=development nodemon index.js",
     "test": "NODE_ENV=test mocha",
     "migrate": "npx sequelize-cli db:migrate",
@@ -33,6 +31,7 @@
     "joi": "^17.13.3",
     "jsonwebtoken": "^9.0.2",
     "morgan": "^1.10.0",
+    "multer": "^1.4.5-lts.1",
     "nodemailer": "^6.9.15",
     "pdfkit": "^0.15.0",
     "pg": "^8.12.0",

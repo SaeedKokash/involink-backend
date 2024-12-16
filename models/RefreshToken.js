@@ -13,7 +13,7 @@ module.exports = (sequelize, DataTypes) => {
       onUpdate: 'CASCADE',
     },
     token: {
-      type: DataTypes.STRING,
+      type: DataTypes.TEXT,
       allowNull: false,
       unique: true,
       comment: 'Refresh token string',

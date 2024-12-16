@@ -95,7 +95,7 @@ exports.signup = async (req, res, next) => {
     );
 
     // Send verification email
-    await sendVerificationEmail(email, verificationToken);
+    // await sendVerificationEmail(email, verificationToken);
 
     // Fetch user with roles within the transaction
     const userWithRoles = await User.findByPk(user.id, {
@@ -183,13 +183,13 @@ exports.login = async (req, res, next) => {
     }
 
     // Check if the user's email is verified
-    if (!user.email_verified) {
-      await transaction.rollback();
-      return next({
-        statusCode: 403,
-        message: "Please verify your email before logging in.",
-      });
-    }
+    // if (!user.email_verified) {
+    //   await transaction.rollback();
+    //   return next({
+    //     statusCode: 403,
+    //     message: "Please verify your email before logging in.",
+    //   });
+    // }
 
     // Cleanup old refresh tokens for this user within the transaction
     await RefreshToken.destroy({ where: { user_id: user.id }, transaction });

@@ -1,13 +1,22 @@
 const express = require('express');
 const userController = require('../controllers/userController');
-const authMiddleware = require('../middlewares/authMiddleware');
-// const { checkPermission } = require('../middleware/permissionMiddleware');
+const { checkRole, checkPermission } = require('../middlewares/authMiddleware');
+
 const router = express.Router({ mergeParams: true });
 
-router.get('/', authMiddleware.authorize('admin'), userController.getUsers);
-router.get('/:id', userController.getUserById);
-router.put('/:id', userController.updateUser);
-router.delete('/:id', userController.deleteUser);
-router.post('/:id', authMiddleware.authorize('admin'), userController.restoreUser);
+// Admin-only route to fetch all users
+router.get('/', checkRole('Admin'), userController.getUsers);
+
+// Get a user by ID (accessible to admin or the user themselves)
+router.get('/:id', checkPermission('view_user'), userController.getUserById);
+
+// Update a user (accessible to admin or the user themselves)
+router.put('/:id', checkPermission('update_user'), userController.updateUser);
+
+// Delete a user (admin-only route)
+router.delete('/:id', checkRole('Admin'), userController.deleteUser);
+
+// Restore a user (admin-only route)
+router.post('/:id', checkRole('Admin'), userController.restoreUser);
 
 module.exports = router;

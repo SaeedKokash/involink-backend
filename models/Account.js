@@ -107,34 +107,34 @@ module.exports = (sequelize, DataTypes) => {
     },
   });
 
-  // Account.associate = (models) => {
-  //   // Each Account belongs to one Store
-  //   Account.belongsTo(models.Store, {
-  //     foreignKey: 'store_id',
-  //     as: 'Store',
-  //     onDelete: 'CASCADE',
-  //     onUpdate: 'CASCADE',
-  //   });
+  Account.associate = (models) => {
+    // Each Account belongs to one Store
+    Account.belongsTo(models.Store, {
+      foreignKey: 'store_id',
+      as: 'Stores',
+      onDelete: 'CASCADE',
+      onUpdate: 'CASCADE',
+    });
 
-  //   // Each Account has many Transactions
-  //   Account.hasMany(models.Transaction, {
-  //     foreignKey: 'account_id',
-  //     as: 'Transactions',
-  //     onDelete: 'SET NULL',
-  //     onUpdate: 'CASCADE',
-  //   });
+    // Each Account has many Transactions
+    Account.hasMany(models.Transaction, {
+      foreignKey: 'account_id',
+      as: 'Transactions',
+      onDelete: 'SET NULL',
+      onUpdate: 'CASCADE',
+    });
 
-  //   // Many-to-Many: Account <-> Alias through AccountAlias
-  //   Account.belongsToMany(models.Alias, {
-  //     through: models.AccountAlias,
-  //     as: 'Aliases',
-  //     foreignKey: 'account_id',
-  //     otherKey: 'alias_id',
-  //     constraints: true,
-  //     onDelete: 'CASCADE',
-  //     onUpdate: 'CASCADE',
-  //   });
-  // };
+    // Many-to-Many: Account <-> Alias through AccountAlias
+    Account.belongsToMany(models.Alias, {
+      through: models.AccountAlias,
+      as: 'Aliases',
+      foreignKey: 'account_id',
+      otherKey: 'alias_id',
+      constraints: true,
+      onDelete: 'CASCADE',
+      onUpdate: 'CASCADE',
+    });
+  };
 
   return Account;
 };

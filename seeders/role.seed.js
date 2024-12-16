@@ -8,7 +8,6 @@ const seedRoles = async () => {
             { name: 'Admin', description: 'Full control over the platform' },
             { name: 'Merchant', description: 'Store owner with full control over store' },
             { name: 'Employee', description: 'Perform operational tasks' },
-            { name: 'Auditor', description: 'View-only access to reports' },
             { name: 'Customer', description: 'Basic user with limited access to invoices' },
         ];
 

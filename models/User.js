@@ -80,11 +80,11 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: true,
       comment: 'Expiry date for email verification token',
     },
-    isVerifiedNumber: {
+    phone_verified: {
       type: DataTypes.BOOLEAN,
       allowNull: false,
       defaultValue: false,
-      comment: 'Whether the user phone number is verified',
+      comment: 'Whether the user phone is verified',
     },
   }, {
     tableName: 'users',
